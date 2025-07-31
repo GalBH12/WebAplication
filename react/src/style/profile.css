@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+
+body {
+  font-family: 'Assistant', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f2f5;
+}
+
+.profile-container {
+  max-width: 600px;
+  margin: 100px auto;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  direction: rtl;
+}
+
+.profile-container h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.profile-container p {
+  font-size: 18px;
+  color: #666;
+}
+
+.profile-container .logout-button {
+  margin-top: 30px;
+  padding: 10px 20px;
+  background-color: #dc3545;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.profile-container .logout-button:hover {
+  background-color: #c82333;
+}

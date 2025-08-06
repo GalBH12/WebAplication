@@ -5,7 +5,8 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 import '../style/Login.css';
 
-const Login = () => {
+const Login = () => 
+  {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -54,6 +55,7 @@ const Login = () => {
         </form>
         <p>{message}</p>
       <p> אין לך חשבון? <Link to="/register">הירשם כאן</Link></p>
+      <p>שכחת סיסמה? <Link to="/forgotpass">אפס סיסמה</Link></p>
       </div>
     </div>
   );

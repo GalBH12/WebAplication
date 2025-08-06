@@ -1,21 +1,29 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../style/register.css';
 
 const Register = () => {
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:4000/api/register', {
+        email,
         username,
         password,
       });
       setMessage('נרשמת בהצלחה!');
+      setTimeout(() => {
+      navigate('/login');
+      }, 2000);
+
     } catch (err) {
       setMessage('שגיאה בהרשמה');
     }
@@ -26,6 +34,13 @@ const Register = () => {
     <div className='register-form'>
       <h2>הרשמה</h2>
       <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="אימייל"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
         <input
           type="text"
           placeholder="שם משתמש"

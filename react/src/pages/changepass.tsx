@@ -17,7 +17,7 @@ const ChangePassword = () => {
         return;
       }
 
-      await axios.post('http://localhost:4000/api/change-password', {
+      await axios.post('http://localhost:4000/api/resetpass', {
         username: user.username,
         oldPassword,
         newPassword,

@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
 const app = express();
+const JWT_SECRET = "mysecret";
 app.use(cors());
 app.use(express.json());
 
@@ -67,15 +68,15 @@ app.post('/api/change-password', async (req, res) => {
 });
 
 // שליחת מייל לאיפוס סיסמה
-app.post("/api/forgotpass", async (req, res) => {
+app.post("/api/forgotpasssender", async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(404).send("User not found");
 
-  const secret = "mysecret" + user.password; // שים כאן משהו קשיח או קח מ־env
-  const token = jwt.sign({ email: user.email, id: user._id }, secret, { expiresIn: "5m" });
+  const secret = "mysecret" + user.password;
+  const token = jwt.sign({ email: user.email, id: user._id }, secret, { expiresIn: "20h" });
 
-  const link = `http://localhost:3000/resetpass/${user._id}/${token}`;
+  const link = `http://localhost:5173/forgotpass/${user._id}/${token}`;
 
   await transporter.sendMail({
     from: "from@example.com",
@@ -86,8 +87,40 @@ app.post("/api/forgotpass", async (req, res) => {
 
   res.send("Email sent");
 });
-app.get("/api/forgotpass", (req, res) => {
-  res.send("Server is up");
+
+// איפוס סיסמה
+app.post("/api/resetpass/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+
+  const oldUser = await User.findOne({ _id: id });
+  if (!oldUser) {
+    return res.json({ status: "User Not Exists!!" });
+  }
+  const secret = JWT_SECRET + oldUser.password;
+  try {
+    let verify;
+try {
+  verify = jwt.verify(token, secret);
+} catch (err) {
+  return res.status(400).json({ error: "הטוקן לא תקף או שפג תוקפו" });
+}
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    await User.updateOne(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          password: encryptedPassword,
+        },
+      }
+    );
+    res.render("index", { email: verify.email, status: "verified" });
+  } catch (error) {
+    console.log(error);
+    res.json({ status: "Something Went Wrong" });
+  }
 });
 
 app.listen(4000, () => console.log('Server running on port 4000'));

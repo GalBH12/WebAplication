@@ -55,7 +55,7 @@ const Login = () =>
         </form>
         <p>{message}</p>
       <p> אין לך חשבון? <Link to="/register">הירשם כאן</Link></p>
-      <p>שכחת סיסמה? <Link to="/forgotpass">אפס סיסמה</Link></p>
+      <p>שכחת סיסמה? <Link to="/forgotpasssender">אפס סיסמה</Link></p>
       </div>
     </div>
   );

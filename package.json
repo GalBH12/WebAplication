@@ -8,5 +8,8 @@
     "mongoose": "^8.16.4",
     "nodemailer": "^7.0.5",
     "vite": "^7.0.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3"
   }
 }

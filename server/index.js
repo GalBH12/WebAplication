@@ -1,126 +1,156 @@
+// server/index.js
+require('dotenv').config(); // אופציונלי: ליצור .env ולהגדיר שם את המשתנים
 const express = require('express');
 const mongoose = require('mongoose');
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 const cors = require('cors');
-const path = require('path');
 const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 const app = express();
-const JWT_SECRET = "mysecret";
-app.use(cors());
+
+// ---- Config (אפשר להעביר ל-.env) ----
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://<user>:<pass>@cluster0.tpv46ai.mongodb.net/?retryWrites=true&w=majority';
+const JWT_SECRET = process.env.JWT_SECRET || 'mysecret';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+
+// ---- Middlewares ----
+app.use(cors({ origin: FRONTEND_ORIGIN }));
 app.use(express.json());
 
-mongoose.connect('mongodb+srv://gallimudim1:Project1234544@cluster0.tpv46ai.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
+// ---- DB ----
+mongoose.connect(MONGO_URI);
 
+// ---- Schemas ----
 const UserSchema = new mongoose.Schema({
-  username: String,
-  email: String,
+  username: { type: String, unique: true, index: true },
+  email:    { type: String, unique: true, index: true },
   password: String,
   resetToken: String,
-  resetTokenExpiration: Date
+  resetTokenExpiration: Date,
+  profilePicture: String,
+  savedPlaces: [{
+    name: String,
+    latlng: { type: [Number], validate: v => Array.isArray(v) && v.length === 2 }, // [lat,lng]
+    description: String,
+    image: String, // base64 data URL
+    createdAt: { type: Date, default: Date.now }
+  }]
 });
 const User = mongoose.model('User', UserSchema);
 
+// ---- Mailer (Mailtrap example) ----
 const transporter = nodemailer.createTransport({
-  host: "smtp.mailtrap.io",
-  port: 587,
+  host: process.env.SMTP_HOST || "smtp.mailtrap.io",
+  port: Number(process.env.SMTP_PORT || 587),
   auth: {
-    user: "772d2a8abb99e2",
-    pass: "e63b4d3d20b8fd"
+    user: process.env.SMTP_USER || "772d2a8abb99e2",
+    pass: process.env.SMTP_PASS || "e63b4d3d20b8fd",
   },
 });
 
-// הרשמה
+// ---- Auth helpers ----
+function signToken(user) {
+  return jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+}
+
+// ---- Routes ----
+
+// Register
 app.post('/api/register', async (req, res) => {
-  const { username, email, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
-  const user = new User({ username, email, password: hash });
-  await user.save();
-  res.json({ success: true });
+  try {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) return res.status(400).json({ error: 'missing fields' });
+
+    const exists = await User.findOne({ $or: [{ username }, { email }] });
+    if (exists) return res.status(409).json({ error: 'user or email already exists' });
+
+    const hash = await bcrypt.hash(password, 10);
+    await User.create({ username, email, password: hash });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'server error' });
+  }
 });
 
-// התחברות
+// Login (expects username + password)
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
   if (!user) return res.status(401).json({ error: 'User not found' });
+
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(401).json({ error: 'Invalid password' });
+
+  // create JWT and return user + token
+  const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      profilePicture: user.profilePicture ?? null,
+    },
+  });
+});
+
+
+// Forgot password – send email with reset link
+app.post('/api/forgotpasssender', async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).send('User not found');
+
+  // IMPORTANT: same secret for sign + verify
+  const secret = JWT_SECRET + user.password;
+  const token = jwt.sign({ email: user.email, id: user._id }, secret, { expiresIn: '20h' });
+
+  const link = `http://localhost:5173/forgotpass/${user._id}/${token}`;
+
+  await transporter.sendMail({
+    from: 'no-reply@example.com',
+    to: user.email,
+    subject: 'Reset your password',
+    html: `<p>Click below to reset your password:</p><a href="${link}">${link}</a>`
+  });
+
+  res.json({ sent: true });
+});
+
+// Reset password by link (/forgotpass/:id/:token)
+app.post('/api/resetpass/:id/:token', async (req, res) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const secret = JWT_SECRET + user.password;
+  try {
+    jwt.verify(token, secret);
+  } catch {
+    return res.status(400).json({ error: 'invalid or expired token' });
+  }
+
+  user.password = await bcrypt.hash(password, 10);
+  await user.save();
   res.json({ success: true });
 });
 
-// שינוי סיסמה
-app.post('/api/change-password', async (req, res) => {
+// Change password from profile (matches your frontend /api/resetpass)
+app.post('/api/resetpass', async (req, res) => {
   const { username, oldPassword, newPassword } = req.body;
-
   const user = await User.findOne({ username });
   if (!user) return res.status(404).json({ error: 'משתמש לא נמצא' });
 
   const isMatch = await bcrypt.compare(oldPassword, user.password);
   if (!isMatch) return res.status(400).json({ error: 'סיסמה נוכחית שגויה' });
 
-  const newHashedPassword = await bcrypt.hash(newPassword, 10);
-  user.password = newHashedPassword;
+  user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
-
   res.json({ message: 'הסיסמה שונתה בהצלחה' });
-});
-
-// שליחת מייל לאיפוס סיסמה
-app.post("/api/forgotpasssender", async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).send("User not found");
-
-  const secret = "mysecret" + user.password;
-  const token = jwt.sign({ email: user.email, id: user._id }, secret, { expiresIn: "20h" });
-
-  const link = `http://localhost:5173/forgotpass/${user._id}/${token}`;
-
-  await transporter.sendMail({
-    from: "from@example.com",
-    to: user.email,
-    subject: "Reset your password",
-    html: `<p>Click below to reset your password:</p><a href="${link}">${link}</a>`
-  });
-
-  res.send("Email sent");
-});
-
-// איפוס סיסמה
-app.post("/api/resetpass/:id/:token", async (req, res) => {
-  const { id, token } = req.params;
-  const { password } = req.body;
-
-  const oldUser = await User.findOne({ _id: id });
-  if (!oldUser) {
-    return res.json({ status: "User Not Exists!!" });
-  }
-  const secret = JWT_SECRET + oldUser.password;
-  try {
-    let verify;
-try {
-  verify = jwt.verify(token, secret);
-} catch (err) {
-  return res.status(400).json({ error: "הטוקן לא תקף או שפג תוקפו" });
-}
-    const encryptedPassword = await bcrypt.hash(password, 10);
-    await User.updateOne(
-      {
-        _id: id,
-      },
-      {
-        $set: {
-          password: encryptedPassword,
-        },
-      }
-    );
-    res.render("index", { email: verify.email, status: "verified" });
-  } catch (error) {
-    console.log(error);
-    res.json({ status: "Something Went Wrong" });
-  }
 });
 
 app.listen(4000, () => console.log('Server running on port 4000'));

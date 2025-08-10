@@ -13,7 +13,7 @@ const ChangePassword = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user.username) {
-        setMessage('משתמש לא מחובר');
+        setMessage('the user is not logged in');
         return;
       }
 
@@ -23,33 +23,33 @@ const ChangePassword = () => {
         newPassword,
       });
 
-      setMessage('הסיסמה שונתה בהצלחה');
+      setMessage('the password has been changed successfully');
       setOldPassword('');
       setNewPassword('');
     } catch (error: any) {
-      setMessage(error.response?.data?.error || 'שגיאה בשינוי הסיסמה');
+      setMessage(error.response?.data?.error || 'error changing password');
     }
   };
 
   return (
     <div className="change-password-container">
-      <h2>שינוי סיסמה</h2>
+      <h2>Changing Password</h2>
       <form onSubmit={handleChangePassword}>
         <input
           type="password"
-          placeholder="סיסמה נוכחית"
+          placeholder="current password"
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="סיסמה חדשה"
+          placeholder="new password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
         />
-        <button type="submit">שנה סיסמה</button>
+        <button type="submit">change password</button>
       </form>
       <p>{message}</p>
     </div>

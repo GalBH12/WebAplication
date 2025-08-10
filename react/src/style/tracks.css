@@ -1,0 +1,15 @@
+.tracks-wrap { max-width: 980px; margin: 24px auto; padding: 0 16px; }
+.tracks-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.controls { display: flex; gap: 8px; }
+.search { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; }
+.cards { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); display: flex; flex-direction: column; }
+.card-body { padding: 12px; display: grid; gap: 8px; }
+.title { margin: 0; font-size: 1.05rem; }
+.coords { font-size: .85rem; color: #666; }
+.thumb { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
+.desc { margin: 0; color: #444; font-size: .95rem; }
+.actions { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #eee; }
+.actions button { padding: 8px 10px; border: none; border-radius: 8px; cursor: pointer; background: #f3f3f3; }
+.actions .danger { background: #ffe8e8; }
+.empty { color: #666; }

@@ -19,46 +19,46 @@ const Register = () => {
         username,
         password,
       });
-      setMessage('נרשמת בהצלחה!');
+      setMessage('You have successfully registered!');
       setTimeout(() => {
       navigate('/login');
       }, 2000);
 
     } catch (err) {
-      setMessage('שגיאה בהרשמה');
+      setMessage('Error during registration');
     }
   };
 
   return (
     <div className="register-container">
     <div className='register-form'>
-      <h2>הרשמה</h2>
+      <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
-          placeholder="אימייל"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
           type="text"
-          placeholder="שם משתמש"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="סיסמה"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">הרשם</button>
+        <button type="submit">Register</button>
       </form>
       <p>{message}</p>
-      <p>כבר יש לך חשבון? <Link to="/login">התחבר כאן</Link></p>
+      <p>Already have an account? <Link to="/login">Login here</Link></p>
     </div>
     </div>
   );

@@ -14,8 +14,6 @@ interface SidebarProps {
 const Sidebar = ({
   places = [],
   onSelectLocation,
-  onRemoveLocation,
-  onAddCurrentLocation,
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleSidebar = () => setIsOpen((s) => !s);
@@ -65,7 +63,7 @@ const Sidebar = ({
 
       <div className="recent-places-section">
         <h4>Saved Places</h4>
-
+        
         {/* Dropdown selector */}
         <select className="places-select" defaultValue="" onChange={handleSelectChange}>
           <option value="" disabled>Select a place…</option>
@@ -73,39 +71,6 @@ const Sidebar = ({
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-
-        {/* Actions */}
-        <div className="actions-row">
-          {onAddCurrentLocation && (
-            <button className="action-btn" onClick={onAddCurrentLocation} title="Add current location">
-              ➕ Add current
-            </button>
-          )}
-        </div>
-
-        {/* List + delete */}
-        {places.length > 0 ? (
-          <ul className="recent-places-list">
-            {places.map((p) => (
-              <li key={p.id} className="place-row fade-in">
-                <button
-                  className="linklike"
-                  onClick={() => {
-                    onSelectLocation(p.latlng);
-                    setIsOpen(false);
-                  }}
-                >
-                  📍 {p.name}
-                </button>
-                <button className="delete-btn" onClick={() => onRemoveLocation(p.id)} title="Delete">
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>there are no places</p>
-        )}
       </div>
 
       <nav>

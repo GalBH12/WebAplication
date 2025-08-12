@@ -11,7 +11,7 @@ export interface LocationItem {
   name: string;
   latlng: LatLng;
   description?: string;
-  image?: string; // base64
+  image?: string; //base64
 }
 
 const STORAGE_KEY = "savedPlaces";

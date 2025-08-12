@@ -67,6 +67,17 @@
   font-weight: bold;
 }
 
+.recent-places-section {
+  color: #007bff;
+  font-weight: bold;
+  margin: 0;
+}
+
+.places-select {
+  display: flex;
+  margin-top: -15px;
+}
+
 .line {
   color: #fff;
   font-weight: bold;

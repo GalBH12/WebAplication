@@ -1,44 +1,47 @@
 import { useState } from "react";
-import axios from "axios";
+import "../style/login.css"; // reuse styles or create a dedicated one
+import { sendForgot } from "../lib/auth";
 
-const ForgotPassword = () => {
+export default function ForgotPassSender() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
 
+    setMsg("");
+    setLoading(true);
     try {
-      await axios.post("http://localhost:4000/api/forgotpasssender", { email });
-      setMessage("A password reset link has been sent to your email");
-      setError("");
-    } catch (err) {
-      setError("Email not found or server error");
-      setMessage("");
+      await sendForgot(email);
+      setMsg("reset link sent to your email");
+    } catch (err: any) {
+      setMsg(err?.response?.data?.error || "send failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "400px", margin: "auto" }}>
-      <h2>Forgot Password</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
-        />
-        <button type="submit" style={{ padding: "8px 16px" }}>
-          Send Reset Link
-        </button>
-      </form>
-      {message && <p style={{ color: "green" }}>{message}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="login-container">
+      <div className="login-form">
+        <h2>Forgot Password</h2>
+        {msg && <p className="error-message">{msg}</p>}
+        <form onSubmit={submit}>
+          <input
+            type="email"
+            placeholder="your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? "Sending..." : "send reset link"}
+          </button>
+        </form>
+      </div>
     </div>
   );
-};
-
-export default ForgotPassword;
+}

@@ -1,32 +1,88 @@
-.change-password-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 30px;
-  background-color: #f8f8f8;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+
+/* Apply the same base font */
+body {
+  font-family: 'Assistant', sans-serif;
+  direction: ltr;
+  margin: 0;
+  padding: 0;
 }
 
+/* Make the page background dark only on this screen (modern browsers) */
+body:has(.change-password-container) {
+  background-color: #1f1f1f;
+}
+
+/* Card container (same look & size as register-form) */
+.change-password-container {
+  background-color: #0f0b2f;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+  width: 335px;
+  margin: 0 auto;              /* center horizontally */
+  margin-top: calc(50vh - 220px); /* approximate vertical centering */
+  text-align: right;           /* match register’s text alignment */
+}
+
+/* Title */
 .change-password-container h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
+  color: #fff;
+  font-weight: bold;
 }
 
-.change-password-container input {
-  width: 100%;
+/* Labels (if you use them) */
+.change-password-container label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  color: #fff;                 /* better contrast on dark card */
+}
+
+/* Inputs */
+.change-password-container input[type="password"],
+.change-password-container input[type="text"] {
+  width: 94%;
   padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 5px;
   border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+  background: #fff;
+  color: #000;
 }
 
+/* Button (same as register) */
 .change-password-container button {
   width: 100%;
+  margin-top: 20px;
   padding: 10px;
   background-color: #007bff;
   border: none;
-  color: white;
-  font-weight: bold;
-  border-radius: 5px;
+  color: #fff;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.change-password-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Message text under the form */
+.change-password-container p {
+  text-align: center;
+  margin-top: 20px;
+  color: #fff;
+}
+
+/* Small helper for very narrow screens */
+@media (max-width: 360px) {
+  .change-password-container {
+    width: 92%;
+    padding: 28px;
+    margin-top: 24px; /* fallback for tiny screens */
+  }
 }

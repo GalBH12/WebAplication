@@ -1,61 +1,52 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import "../style/login.css";
+import { resetWithToken } from "../lib/auth";
 
-const ResetPassword = () => {
+export default function ResetPassword() {
   const { id, token } = useParams();
+  const navigate = useNavigate();
+
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || !id || !token) return;
 
-    if (password !== confirmPassword) {
-      setError("passwords do not match");
-      return;
-    }
+    setMsg("");
+    setLoading(true);
     try {
-      await axios.post(`http://localhost:4000/api/resetpass/${id}/${token}`, {
-        password,
-      });
-      setMessage("the password has been changed successfully");
-      setError("");
-    } catch (err) {
-      setError("invalid link or link has expired");
-      setMessage("");
+      await resetWithToken(id, token, password);
+      setMsg("password updated");
+      navigate("/login");
+    } catch (err: any) {
+      setMsg(err?.response?.data?.error || "reset failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "400px", margin: "auto" }}>
-      <h2>Reset Password</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder="Enter new password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
-        />
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: "8px", marginBottom: "1rem" }}
-        />
-        <button type="submit" style={{ padding: "8px 16px" }}>
-          reset password
-        </button>
-      </form>
-      {message && <p style={{ color: "green" }}>{message}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="login-container">
+      <div className="login-form">
+        <h2>Reset Password</h2>
+        {msg && <p className="error-message">{msg}</p>}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="password"
+            placeholder="new password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? "Updating..." : "update password"}
+          </button>
+        </form>
+      </div>
     </div>
   );
-};
-
-export default ResetPassword;
+}

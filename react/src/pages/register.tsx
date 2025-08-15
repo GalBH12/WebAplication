@@ -1,67 +1,75 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import '../style/register.css';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import "../style/register.css";
+import { registerUser } from "../lib/auth";
 
-const Register = () => {
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+export default function Register() {
   const navigate = useNavigate();
-  
+  const [username, setUsername] = useState("");
+  const [email, setEmail]     = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await axios.post('http://localhost:4000/api/register', {
-        email,
-        username,
-        password,
-      });
-      setMessage('You have successfully registered!');
-      setTimeout(() => {
-      navigate('/login');
-      }, 2000);
+    if (loading) return;
 
-    } catch (err) {
-      setMessage('Error during registration');
+    setMsg("");
+    setLoading(true);
+    try {
+      await registerUser({ username, email, password });
+      setMsg("registered successfully");
+      navigate("/login");
+    } catch (err: any) {
+      setMsg(err?.response?.data?.error || "register failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="register-container">
-    <div className='register-form'>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      <form className="register-form" onSubmit={handleRegister}>
+        <h2>Register</h2>
+
+        {msg && <p className="error-message">{msg}</p>}
+
         <input
           type="text"
-          placeholder="Username"
+          placeholder="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          autoComplete="username"
         />
+
+        <input
+          type="email"
+          placeholder="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+
         <input
           type="password"
-          placeholder="Password"
+          placeholder="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="new-password"
         />
-        <button type="submit">Register</button>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating..." : "register"}
+        </button>
+
+        <p>
+          already have an account? <Link to="/login">log in</Link>
+        </p>
       </form>
-      <p>{message}</p>
-      <p>Already have an account? <Link to="/login">Login here</Link></p>
-    </div>
     </div>
   );
-};
-
-export default Register;
+}

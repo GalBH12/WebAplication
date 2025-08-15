@@ -7,8 +7,6 @@ import type { LocationItem } from "./Map";
 interface SidebarProps {
   places?: LocationItem[];
   onSelectLocation: (location: [number, number]) => void;
-  onRemoveLocation: (id: string) => void;
-  onAddCurrentLocation?: () => void;
 }
 
 const Sidebar = ({

@@ -1,12 +1,14 @@
+/* ===== Base ===== */
 body {
     font-family: 'Assistant', sans-serif;
     margin: 0;
     padding: 0;
     direction: ltr;
-    background-color: #1f1f1f; /* רקע כללי כהה */
+    background-color: #1f1f1f; /* dark background */
     color: #fff;
 }
 
+/* ===== Layout ===== */
 .tracks-wrap { 
     max-width: 980px;
     margin: 24px auto;
@@ -30,10 +32,11 @@ body {
     padding: 8px 10px;
     border: 1px solid #555;
     border-radius: 8px;
-    background-color: #ffffff; /* כהה כמו ה-register-form */
+    background-color: #1f1f1f;
     color: #fff;
 }
 
+/* ===== Cards ===== */
 .cards {
     list-style: none;
     padding: 0;
@@ -44,7 +47,7 @@ body {
 }
 
 .card {
-    background: #0f0b2f; /* כהה */
+    background: #0f0b2f;
     border: 1px solid #333;
     border-radius: 12px;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
@@ -94,7 +97,7 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    background: #007bff; /* כחול כמו ב-register */
+    background: #007bff;
     color: #fff;
     font-weight: bold;
     transition: background-color 0.3s;
@@ -116,4 +119,159 @@ body {
     color: #aaa;
     text-align: center;
     padding: 20px;
+}
+
+/* ===== Modal ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #0f0b2f;
+  color: #fff;
+  width: min(720px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 16px 18px 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+
+.tab {
+  appearance: none;
+  border: 1px solid #333;
+  background: #1f1f1f;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ccc;
+  transition: 0.2s;
+}
+
+.tab:hover {
+  background: #2a2a2a;
+}
+
+.tab--active {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.tab-panel {
+  display: grid;
+  gap: 12px;
+}
+
+/* ===== Form ===== */
+.form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+input[type="text"]
+{
+  width: 100%;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px 1px;
+  font-size: 14px;
+  background: #f4f4f4;
+  color: #000000;
+}
+textarea,
+
+input[type="file"] {
+  width: 100%;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px 1px;
+  font-size: 14px;
+  background: #f4f4f4;
+  color: #000000;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ===== Image Preview ===== */
+.image-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.image-preview img {
+  max-width: 60%;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+
+/* ===== Modal Actions ===== */
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.btn {
+  border: 1px solid #333;
+  background: #1f1f1f;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #fff;
+}
+
+.btn:hover {
+  background: #2a2a2a;
+}
+
+.btn.primary {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.btn.primary:hover {
+  background: #0056b3;
+}
+
+.btn.secondary {
+  background: transparent;
+  color: #aaa;
+}
+
+/* ===== Helpers ===== */
+.hint {
+  color: #888;
+  font-size: 13px;
 }

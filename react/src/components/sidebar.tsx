@@ -31,7 +31,6 @@ const Sidebar = ({
       setIsOpen(false);
     }
   };
-  console.log(user);
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="top-bar">

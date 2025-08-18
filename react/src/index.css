@@ -2,7 +2,7 @@
 html, body, #root {
   height: 100%;
   margin: 0;
-  background-color: #1f1f1f; /* רקע כהה כמו register */
+  background-color: #1f1f1f;
   font-family: 'Assistant', sans-serif;
 }
 
@@ -28,7 +28,7 @@ html, body, #root {
 }
 
 .map-toolbar {
-  background: #1e1d1d; /* כרטיס כהה */
+  background: #1e1d1d;
   padding: 8px;
   border-radius: 8px;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
@@ -175,7 +175,7 @@ font: inherit;
 .popup-title {
   font-weight: 700;
   margin-bottom: 4px;
-  color: #fff;
+  color: black;
 }
 
 .popup-actions {

@@ -11,6 +11,15 @@ import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
 import markerIconPng from "leaflet/dist/images/marker-icon.png";
 import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
 
+// Backend tracks API (must support `image?: string`)
+import { getTracks, createTrack } from "../lib/tracks";
+import type { Track } from "../lib/tracks";
+
+const isRenderableImage = (src?: string): boolean => {
+  if (!src) return false;
+  return /^data:image\//i.test(src) || src.startsWith("/api/");
+};
+
 const defaultIcon = L.icon({
   iconUrl: markerIconPng,
   shadowUrl: markerShadowPng,
@@ -27,11 +36,11 @@ export interface LocationItem {
   name: string;
   latlng: LatLng;
   description?: string;
-  image?: string; // base64
+  image?: string; // base64 data URL (persisted to DB)
   createdAt?: number;
 }
 
-// Typed bounds for Israel
+// Israel bounds
 const IsraelBounds: LatLngBoundsExpression = [
   [29.4, 34.2],
   [33.3, 35.9],
@@ -40,51 +49,60 @@ const IsraelBounds: LatLngBoundsExpression = [
 // Interaction modes
 type MapMode = "drag" | "pin-form";
 
-// Simple id generator
+// Local id helper (fallback only)
 const makeId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 export default function Map() {
   const { user } = useAuth();
-  const canPin = !!user; // Only authenticated users can add points
+  const canPin = !!user; // only authenticated users can add points
 
-  // Points state (local for now; can be replaced with server-backed data)
+  // Markers (synced with DB via /api/tracks)
   const [places, setPlaces] = useState<LocationItem[]>([]);
 
   // Mode state
   const [mode, setMode] = useState<MapMode>("drag");
 
-  // Form state
+  // Pin form state
   const [formOpen, setFormOpen] = useState(false);
   const [formCoords, setFormCoords] = useState<LatLng | null>(null);
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [formImage, setFormImage] = useState<string | undefined>(undefined);
+  const [formImage, setFormImage] = useState<string | undefined>(undefined); // <-- used
 
   // Geolocation
   const [myPos, setMyPos] = useState<LatLng | null>(null);
 
-  // Map ref (using ref instead of whenCreated/whenReady)
+  // Map ref
   const mapRef = useRef<LeafletMap | null>(null);
 
-  // Load from localStorage on mount (kept for now)
+  // Load existing tracks from server (DB)
   useEffect(() => {
-    const saved = localStorage.getItem("savedPlaces");
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as any[];
-      const normalized = parsed.map((p) => ({
-        ...p,
-        createdAt: typeof p?.createdAt === "string" ? Number(p.createdAt) : p?.createdAt,
-      }));
-      setPlaces(normalized);
-    } catch {}
+    let cancelled = false;
+    (async () => {
+      try {
+        const data: Track[] = await getTracks();
+        if (cancelled) return;
+        // Convert Track -> LocationItem (use first point as marker position)
+        const normalized: LocationItem[] = (data || [])
+          .filter((t) => Array.isArray(t.points) && t.points.length > 0)
+          .map((t) => ({
+            id: t._id!,                                // MongoDB id
+            name: t.name,
+            latlng: t.points[0] as LatLng,             // first point for marker
+            description: t.description,
+            image: t.image,                            // <-- KEEP IMAGE AS IS FROM BACKEND
+            createdAt: t.createdAt ? new Date(t.createdAt).getTime() : Date.now(),
+          }));
+        setPlaces(normalized);
+      } catch (err) {
+        console.error("Failed to load tracks from server", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  // Persist to localStorage when places change
-  useEffect(() => {
-    localStorage.setItem("savedPlaces", JSON.stringify(places));
-  }, [places]);
 
   // Request geolocation once
   useEffect(() => {
@@ -95,14 +113,14 @@ export default function Map() {
     );
   }, []);
 
-  // Center the map when geolocation arrives
+  // Center map when geolocation arrives
   useEffect(() => {
     if (!myPos || !mapRef.current) return;
     const m = mapRef.current;
     m.setView(myPos, Math.max(m.getZoom(), 12), { animate: true });
   }, [myPos]);
 
-  // Map click handler: open form only in pin-form mode and only for authenticated users
+  // Map click handler: open form in pin-form mode (auth required)
   function MapClicker() {
     useMapEvents({
       click: (e) => {
@@ -112,7 +130,6 @@ export default function Map() {
           return;
         }
         const coords: LatLng = [e.latlng.lat, e.latlng.lng];
-        // open the form at clicked coords
         setFormName("");
         setFormDescription("");
         setFormImage(undefined);
@@ -123,8 +140,8 @@ export default function Map() {
     return null;
   }
 
-  // Save point from form
-  const handleSaveFromForm = () => {
+  // Save pin via backend (DB), including image base64
+  const handleSaveFromForm = async () => {
     if (!canPin) {
       alert("Please log in to add points");
       return;
@@ -133,54 +150,46 @@ export default function Map() {
       alert("Please enter a name");
       return;
     }
-    setPlaces((prev) => [
-      ...prev,
-      {
-        id: makeId(),
+
+    // Ensure JWT exists so axios interceptor adds Authorization header
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login first.");
+      return;
+    }
+
+    try {
+      // Backend expects: { name, description?, points: [[lat,lng], ...], image? }
+      const created = await createTrack({
         name: formName.trim(),
-        latlng: formCoords,
         description: formDescription || undefined,
-        image: formImage,
-        createdAt: Date.now(),
-      },
-    ]);
-    // close & reset the form after saving
-    setFormOpen(false);
-    setFormCoords(null);
-    setFormName("");
-    setFormDescription("");
-    setFormImage(undefined);
-  };
+        points: [formCoords],
+        image: formImage, // <-- SEND image to server
+      });
 
-  // Open the same pin form, prefilled with the current location
-  const handlePinCurrent = () => {
-    if (!canPin) {
-      alert("Please log in to add points");
-      return;
+      // Reflect newly created track in UI (use first point as marker)
+      setPlaces((prev) => [
+        ...prev,
+        {
+          id: created._id || makeId(),
+          name: created.name,
+          latlng: (created.points?.[0] as LatLng) ?? formCoords,
+          description: created.description,
+          image: created.image, // <-- keep image from server response
+          createdAt: created.createdAt ? new Date(created.createdAt).getTime() : Date.now(),
+        },
+      ]);
+
+      // Reset form
+      setFormOpen(false);
+      setFormCoords(null);
+      setFormName("");
+      setFormDescription("");
+      setFormImage(undefined);
+    } catch (err) {
+      console.error("Failed to create track", err);
+      alert("Failed to save track (check token and points format).");
     }
-    if (!myPos) {
-      alert("Current location is not available yet");
-      return;
-    }
-
-    // optional: center the map on current location
-    if (mapRef.current) {
-      const m = mapRef.current;
-      m.setView(myPos, Math.max(m.getZoom(), 12), { animate: true });
-    }
-
-    // open the form with my current coords
-    setFormCoords(myPos);
-    setFormName(""); // default name (editable)
-    setFormDescription("");
-    setFormImage(undefined);
-    setFormOpen(true);
-  };
-
-  // Delete point (local-only version)
-  const handleDelete = (event: React.MouseEvent, id: string) => {
-    event.stopPropagation();
-    setPlaces((prev) => prev.filter((p) => p.id !== id));
   };
 
   // Update cursor and close form when switching to drag
@@ -200,7 +209,7 @@ export default function Map() {
     }
   }, [mode, canPin]);
 
-  // File -> base64
+  // File -> base64 data URL (image preview + send to server)
   const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -209,10 +218,10 @@ export default function Map() {
     reader.readAsDataURL(file);
   };
 
-  // Map center: user location first, otherwise Jerusalem-ish
+  // Default center: geolocation or Jerusalem-ish
   const center: LatLng = useMemo(() => myPos || [31.78, 35.22], [myPos]);
 
-  // Safe mode setter: prevent switching to pin-form if not logged in
+  // Safe mode setter: block pin-form if not logged in
   const setModeSafe = (next: MapMode) => {
     if (next === "pin-form" && !canPin) {
       alert("Only logged-in users can add points");
@@ -245,7 +254,7 @@ export default function Map() {
               drag
             </button>
 
-            {/* pin (form): click on the map to choose the location */}
+            {/* pin (form): click on the map to choose location */}
             <button
               onClick={() => setModeSafe("pin-form")}
               disabled={!canPin}
@@ -255,9 +264,27 @@ export default function Map() {
               pin (form)
             </button>
 
-            {/* pin my location: open the same form, prefilled with myPos */}
+            {/* pin my location: open form at myPos */}
             <button
-              onClick={handlePinCurrent}
+              onClick={() => {
+                if (!canPin) {
+                  alert("Please log in to add points");
+                  return;
+                }
+                if (!myPos) {
+                  alert("Current location is not available yet");
+                  return;
+                }
+                if (mapRef.current) {
+                  const m = mapRef.current;
+                  m.setView(myPos, Math.max(m.getZoom(), 12), { animate: true });
+                }
+                setFormCoords(myPos);
+                setFormName("");
+                setFormDescription("");
+                setFormImage(undefined);
+                setFormOpen(true);
+              }}
               disabled={!canPin || !myPos}
               className="map-btn"
               title="Open pin form at your current location (requires login)"
@@ -298,26 +325,36 @@ export default function Map() {
         {/* Click handler honoring mode + auth */}
         <MapClicker />
 
-        {/* Existing markers */}
-        {places.map((p) => (
-          <Marker key={p.id} position={p.latlng} icon={defaultIcon}>
-            <Popup>
-              <div>
-                <div className="popup-title">{p.name}</div>
-                {p.description && <div style={{ marginBottom: 4 }}>{p.description}</div>}
-                {p.image && <img src={p.image} alt={p.name} className="popup-image" />}
-                <div className="popup-actions">
-                  <button className="map-btn" onClick={(e) => handleDelete(e, p.id)}>
-                    delete
-                  </button>
+        {/* Existing markers (from DB) */}
+        {places.map((p) => {
+          console.log("popup image src:", p.image); // <-- Here, outside JSX!
+          return (
+            <Marker key={p.id} position={p.latlng} icon={defaultIcon}>
+              <Popup>
+                <div>
+                  <div className="popup-title">{p.name}</div>
+                  {p.description && (
+                    <div style={{ marginBottom: 4 }}>{p.description}</div>
+                  )}
+                  {isRenderableImage(p.image) && (
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      className="popup-image"
+                      style={{ maxWidth: 200, maxHeight: 200 }}
+                      onError={() => {
+                        // ...
+                      }}
+                    />
+                  )}
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
 
-      {/* Sidebar wired to your expected props */}
+      {/* Sidebar */}
       <Sidebar
         places={places}
         onSelectLocation={(latlng) => {
@@ -348,7 +385,15 @@ export default function Map() {
             rows={3}
           />
 
+          {/* Image input + live preview */}
           <input type="file" accept="image/*" onChange={onImageChange} />
+          {formImage && (
+            <img
+              src={formImage}
+              alt="preview"
+              style={{ maxWidth: "100%", marginTop: 6, borderRadius: 6 }}
+            />
+          )}
 
           <div className="form-panel__actions">
             <button className="form-btn" onClick={handleSaveFromForm}>
@@ -359,6 +404,7 @@ export default function Map() {
               onClick={() => {
                 setFormOpen(false);
                 setFormCoords(null);
+                setFormImage(undefined);
               }}
             >
               cancel

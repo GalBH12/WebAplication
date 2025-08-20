@@ -8,9 +8,12 @@ import ForgotPasswordSender from './pages/forgotpasssender';
 import ResetPassword from './pages/forgotpass';
 import Tracks from './pages/tracks';
 import Chat from './pages/chat';
+import AdminPanel from './components/AdminPanel';
 
 
 function App() {
+  const user = { role: "admin" }; // or null if not logged in
+
   return (
     <BrowserRouter>
       <Routes>
@@ -23,6 +26,9 @@ function App() {
         <Route path="/forgotpass/:id/:token" element={<ResetPassword />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/tracks" element={<Tracks />} />
+        {user?.role === "admin" && (
+          <Route path="/admin" element={<AdminPanel user={user} />} />
+        )}
       </Routes>
     </BrowserRouter>
   );

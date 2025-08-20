@@ -192,18 +192,6 @@ body {
   color: #aaa;
 }
 
-input[type="text"]
-{
-  width: 100%;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 8px 1px;
-  font-size: 14px;
-  background: #f4f4f4;
-  color: #000000;
-}
-textarea,
-
 input[type="file"] {
   width: 100%;
   border: 1px solid #eee;
@@ -274,4 +262,17 @@ textarea {
 .hint {
   color: #888;
   font-size: 13px;
+}
+
+button.disabled,
+button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.track-image {
+  max-width: 290px;
+  border-radius: 8px;
+  margin-top: 8px;
 }

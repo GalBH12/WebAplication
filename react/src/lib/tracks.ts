@@ -9,8 +9,9 @@ export interface Track {
   name: string;
   description?: string;
   points: [number, number][];
-  owner?: string;
+  owner?: string | { _id: string };
   createdAt?: string;
+  updatedAt?: string;
   /** Absolute URL returned by server (e.g., /api/tracks/:id/picture) */
   image?: string;
 }
@@ -93,7 +94,7 @@ export async function updateTrack(
     points: payload.points,
   };
   if (typeof payload.image === "string") body.image = payload.image;
-  if (payload.imageClear) body.imageClear = "true";
+  if (payload.imageClear) body.imageClear = payload.imageClear;
 
   const { data } = await api.put(`${TRACKS_BASE}/${id}`, body);
   return normalizeTrack(data);

@@ -5,10 +5,12 @@ import { login as loginRequest } from '../lib/auth'; // Using lib/auth.ts
 
 // ---- Types ----
 export type User = {
+  _id: string;
   id?: string;
   username: string;
   email?: string;
   profilePicture?: string | null;
+  role?: string; // <-- Add this line
 };
 
 export type AuthContextType = {
@@ -79,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       username: data.user?.username ?? username,
       email: data.user?.email ?? undefined,
       profilePicture: data.user?.profilePicture ?? null,
+      role: data.user?.role ?? undefined,
+      _id: ''
     };
 
     // Update state + localStorage

@@ -8,6 +8,7 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const User = require("./models/user");
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 // Static (optional) — only if you actually build the client into /public
 app.use(express.static(path.join(process.cwd(), "public")));
 
+app.use("/api/admin", require("./routes/admin"));
 /* =========================
    DB connection
    ========================= */
@@ -65,34 +67,14 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =========================
-   Auth helpers & model
+   Auth helpers
    ========================= */
-const userSchema = new mongoose.Schema({
-  username: { type: String, unique: true, index: true },
-  email: { type: String, unique: true, index: true },
-  password: String,
-  resetToken: String,
-  resetTokenExpiration: Date,
-  profilePicture: String,
-  savedPlaces: [
-    {
-      name: String,
-      latlng: {
-        type: [Number],
-        validate: (v) => Array.isArray(v) && v.length === 2,
-      },
-      description: String,
-      image: String,
-      createdAt: { type: Date, default: Date.now },
-    },
-  ],
-});
-const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 function signToken(user) {
   // Token payload MUST include { id } for routes that rely on req.user.id
   return jwt.sign(
-    { id: user._id.toString(), username: user.username },
+    { id: user._id.toString(), username: user.username,
+     role: user.role || "user", banned: user.banned || true },
     JWT_SECRET,
     { expiresIn: "7d" }
   );
@@ -140,6 +122,10 @@ app.post("/api/login", async (req, res) => {
     const user = await User.findOne({ username });
     if (!user) return res.status(401).json({ error: "User not found" });
 
+    if (user.banned) {
+     return res.status(403).json({ error: "Your account is suspended, contact us for more information." });
+    }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: "Invalid password" });
 
@@ -152,6 +138,8 @@ app.post("/api/login", async (req, res) => {
         username: user.username,
         email: user.email,
         profilePicture: user.profilePicture ?? null,
+        role: user.role || "user",
+        banned: user.banned || false,
       },
     });
   } catch (e) {

@@ -1,4 +1,6 @@
+import React from "react";
 import { api } from "./api";
+import { AuthContext } from "../pages/AuthContext";
 
 export type LoginPayload = { username: string; password: string };
 export type RegisterPayload = { username: string; email: string; password: string };
@@ -31,4 +33,8 @@ export async function resetWithToken(id: string, token: string, password: string
 export async function changePassword(username: string, oldPassword: string, newPassword: string) {
   const res = await api.post("/api/resetpass", { username, oldPassword, newPassword });
   return res.data;
+}
+
+export function useAuth() {
+  return React.useContext(AuthContext);
 }

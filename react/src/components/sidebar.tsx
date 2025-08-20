@@ -9,6 +9,11 @@ interface SidebarProps {
   onSelectLocation: (location: [number, number]) => void;
 }
 
+export interface User {
+  username: string;
+  role?: string;
+}
+
 const Sidebar = ({
   places = [],
   onSelectLocation,
@@ -80,6 +85,9 @@ const Sidebar = ({
                 <li><Link to="/profile" onClick={() => setIsOpen(false)}>Profile</Link></li>
                 <li><Link to="/chat" onClick={() => setIsOpen(false)}>Chat</Link></li>
                 <li><Link to="/changepass" onClick={() => setIsOpen(false)}>Change Password</Link></li>
+                {user?.role === "admin" && (
+                  <li><Link to="/admin" onClick={() => setIsOpen(false)}>Admin Panel</Link></li>
+                )}
               </>
             ) : null}
           </div>

@@ -2,13 +2,17 @@
 // List + edit Tracks using JSON only (image as data URL). No multipart/FormData.
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTracks, deleteTrack, updateTrack } from "../lib/tracks";
+import { getTracks, deleteTrack, updateTrack, getTrack } from "../lib/tracks";
 import type { Track } from "../lib/tracks";
+import { useAuth } from "../lib/auth";
 import "../style/tracks.css";
 
 type SortBy = "name" | "created";
 
 export default function Tracks() {
+  const auth = useAuth();
+  const user = auth?.user;
+
   // ===== Server data =====
   const [items, setItems] = useState<Track[]>([]);
 
@@ -35,6 +39,7 @@ export default function Tracks() {
   const [editImageClear, setEditImageClear] = useState<boolean>(false);
 
   const [savingEdit, setSavingEdit] = useState(false);
+  
 
   // ===== Load tracks =====
   const load = async () => {
@@ -78,11 +83,6 @@ export default function Tracks() {
     return list;
   }, [items, q, sortBy]);
 
-  // ===== Navigation =====
-  const goToOnMap = (coords: [number, number]) => {
-    navigate("/", { state: { center: coords } });
-  };
-
   // ===== Delete =====
   const remove = async (id?: string) => {
     if (!id) return;
@@ -97,15 +97,16 @@ export default function Tracks() {
   };
 
   // ===== Open edit modal =====
-  const openEdit = (t: Track) => {
-    setEditing(t);
-    setEditName(t.name);
-    setEditDesc(t.description || "");
+  const openEdit = async (t: Track) => {
+    // Fetch the latest track data from the backend
+    const latest = await getTrack(t._id);
 
-    // Preview shows current server image (URL) or nothing
-    setEditImagePreview(typeof t.image === "string" && t.image.length > 0 ? t.image : null);
+    setEditing(latest);
+    setEditName(latest.name);
+    setEditDesc(latest.description || "");
 
-    // Reset JSON image editing flags
+    // Always use the latest image from the track (not stale state)
+    setEditImagePreview(typeof latest.image === "string" && latest.image.length > 0 ? latest.image : null);
     setEditImageDataUrl(undefined);
     setEditImageClear(false);
   };
@@ -169,8 +170,9 @@ export default function Tracks() {
         payload.imageClear = true;
       }
       // Note: points are not edited here; add if you have editPoints state
-
+      
       const updated = await updateTrack(editing._id, payload);
+      console.log("Track updated:", updated);
       setItems((prev) => prev.map((x) => (x._id === updated._id ? updated : x)));
       setEditing(null);
     } catch (e) {
@@ -180,7 +182,7 @@ export default function Tracks() {
       setSavingEdit(false);
     }
   };
-
+ console.log("Tracks component rendered with user:", items);
   return (
     <div className="tracks-wrap">
       <header className="tracks-header">
@@ -209,39 +211,73 @@ export default function Tracks() {
         <p className="empty">No tracks yet. Add some from the map ✨</p>
       ) : (
         <ul className="cards">
-          {filtered.map((p) => (
-            <li className="card" key={p._id}>
-              <div className="card-body">
-                <div className="meta">
-                  <h3 className="title">{p.name}</h3>
-                  {p.points && p.points.length > 0 && (
-                    <div className="coords">
-                      {p.points[0][0].toFixed(5)}, {p.points[0][1].toFixed(5)}
-                    </div>
+          {filtered.map((p) => {
+            const isOwner =
+              user &&
+              p.owner &&
+              (
+                (typeof p.owner === "string" && user.id === p.owner) ||
+                (typeof p.owner === "object" && user.id === p.owner._id)
+              );
+            const isAdmin = user && user.role === "admin";
+            const canEditOrDelete = !!user && (isOwner || isAdmin);
+
+            return (
+              <li className="card" key={p._id}>
+                <div className="card-body">
+                  <div className="meta">
+                    <h3 className="title">{p.name}</h3>
+                    {p.points && p.points.length > 0 && (
+                      <div className="coords">
+                        {p.points[0][0].toFixed(5)}, {p.points[0][1].toFixed(5)}
+                      </div>
+                    )}
+                  </div>
+                  {p.description && <p className="desc">{p.description}</p>}
+                  {p.image && (
+                    <img
+                      src={`${p.image}?ts=${p.updatedAt || Date.now()}`}
+                      alt={p.name}
+                      className="track-image"
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                      }}
+                    />
                   )}
                 </div>
-                {p.description && <p className="desc">{p.description}</p>}
-                {p.image && (
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    className="thumb"
-                    style={{ maxWidth: 200, borderRadius: 8, marginTop: 8 }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
+                <div className="actions">
+                  {p.points && p.points.length > 0 && (
+                    <button
+                      onClick={() => navigate("/", { state: { center: p.points[0] } })}
+                    >
+                      Go on map
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openEdit(p)}
+                    disabled={!canEditOrDelete}
+                    className={!canEditOrDelete ? "disabled" : ""}
+                    title={!user ? "Log in to edit" : !canEditOrDelete ? "Only owner or admin can edit" : ""}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className={`danger${!canEditOrDelete ? " disabled" : ""}`}
+                    onClick={() => remove(p._id)}
+                    disabled={!canEditOrDelete}
+                    title={!user ? "Log in to delete" : !canEditOrDelete ? "Only owner or admin can delete" : ""}
+                  >
+                    Delete
+                  </button>
+                </div>
+                {!canEditOrDelete && (
+                  <span className="map-toolbar__badge" title="Log in to enable edit/delete">
+                    login/admin perms required for edit/delete
+                  </span>
                 )}
-              </div>
-              <div className="actions">
-                {p.points && p.points.length > 0 && (
-                  <button onClick={() => goToOnMap(p.points[0])}>Go on map</button>
-                )}
-                <button onClick={() => openEdit(p)}>Edit</button>
-                <button className="danger" onClick={() => remove(p._id)}>Delete</button>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -285,9 +321,8 @@ export default function Tracks() {
               {(editImagePreview || editing.image) && (
                 <div>
                   <img
-                    src={editImagePreview || editing.image!}
+                    src={editImagePreview || (editing.image ? `${editing.image}?ts=${Date.now()}` : undefined)}
                     alt={editing?.name}
-                    style={{ maxWidth: 200, borderRadius: 8 }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
                     }}

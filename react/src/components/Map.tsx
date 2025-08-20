@@ -231,6 +231,8 @@ export default function Map() {
     setMode(next);
   };
 
+
+
   return (
     <div className="map-page">
       {/* Floating mode controls */}
@@ -326,32 +328,26 @@ export default function Map() {
         <MapClicker />
 
         {/* Existing markers (from DB) */}
-        {places.map((p) => {
-          console.log("popup image src:", p.image); // <-- Here, outside JSX!
-          return (
-            <Marker key={p.id} position={p.latlng} icon={defaultIcon}>
-              <Popup>
-                <div>
-                  <div className="popup-title">{p.name}</div>
-                  {p.description && (
-                    <div style={{ marginBottom: 4 }}>{p.description}</div>
-                  )}
-                  {isRenderableImage(p.image) && (
-                    <img
-                      src={p.image}
-                      alt={p.name}
-                      className="popup-image"
-                      style={{ maxWidth: 200, maxHeight: 200 }}
-                      onError={() => {
-                        // ...
-                      }}
-                    />
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+        {places.map((p) => (
+          <Marker key={p.id} position={p.latlng} icon={defaultIcon}>
+            <Popup>
+              <div>
+                <div className="popup-title">{p.name}</div>
+                {p.description && (
+                  <div style={{ marginBottom: 4 }}>{p.description}</div>
+                )}
+                {isRenderableImage(p.image) && (
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="popup-image"
+                    style={{ maxWidth: 200, maxHeight: 200 }}
+                  />
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
 
       {/* Sidebar */}
@@ -415,3 +411,4 @@ export default function Map() {
     </div>
   );
 }
+

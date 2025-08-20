@@ -1,3 +1,13 @@
+/* ===== Text selection control ===== */
+body, h1, h2, h3, h4, h5, h6, p, div, span, ul, li, label, button, a, .card-title, .title, .desc, .actions, .tabs, .tab, .label, .empty, .hint, .tracks-header, .cards, .card, .card-body {
+  user-select: none;
+}
+
+/* Allow selection in form fields */
+input, textarea, select {
+  user-select: text;
+}
+
 /* ===== Base layout (map sizing) ===== */
 html, body, #root {
   height: 100%;
@@ -186,3 +196,5 @@ font: inherit;
 .popup-actions .map-btn {
   padding: 4px 8px;
 }
+
+

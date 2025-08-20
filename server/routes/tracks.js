@@ -46,7 +46,7 @@ function verifyToken(req, res, next) {
     if (!decoded || !decoded.id) {
       return res.status(403).json({ error: "Invalid token payload" });
     }
-    req.user = decoded; // { id, iat, exp }
+    req.user = decoded; // { id, iat, exp, role }
     next();
   } catch {
     return res.status(403).json({ error: "Invalid token" });
@@ -74,6 +74,7 @@ function toClient(t) {
   if (
     out?.image &&
     typeof out.image === "object" &&
+    out.image !== null &&
     out.image.data
   ) {
     // Node.js Buffer
@@ -93,15 +94,6 @@ function toClient(t) {
   const isDataUrlString =
     typeof out?.image === "string" && /^data:image\//i.test(out.image);
 
-  console.log("toClient:", {
-    id: out._id,
-    hasBuffer,
-    imageType: typeof out.image,
-    imageKeys: Object.keys(out.image || {}),
-    bsonType: out.image.data?._bsontype,
-    bsonLen: typeof out.image.data?.length === "function" ? out.image.data.length() : undefined,
-  });
-
   return {
     ...out,
     image: hasBuffer
@@ -118,8 +110,7 @@ router.get("/", async (_req, res) => {
     const docs = await Track.find({})
       .select("name description points owner createdAt image")
       .sort({ createdAt: -1 });
-      console.log("GET /api/tracks first doc:", docs[0]);
-      res.json(docs.map(toClient));
+    res.json(docs.map(toClient));
   } catch (e) {
     console.error("GET /api/tracks error:", e);
     res.status(500).json({ message: "Failed to fetch tracks" });
@@ -156,7 +147,6 @@ router.get("/:id/picture", async (req, res) => {
 router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const { name, description, points, image } = req.body;
-    console.log("POST /api/tracks", { hasImage: !!image, image: typeof image, imageLen: image?.length });
     if (!name) return res.status(400).json({ error: "name is required" });
 
     let pts = points;
@@ -172,7 +162,6 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
     });
 
     if (req.file) {
-      // Prefer Buffer storage if schema supports it; fallback to base64 string if schema type is String
       const imagePath = Track.schema?.path("image");
       if (imagePath && imagePath.instance === "String") {
         doc.image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
@@ -183,14 +172,11 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
       const parsed = parseDataUrl(image);
       const imagePath = Track.schema?.path("image");
       if (imagePath && imagePath.instance === "String") {
-        // Save the data URL string as-is
         doc.image = image;
       } else if (parsed) {
-        // Save as Buffer if schema supports object
         doc.image = { data: parsed.buffer, contentType: parsed.mime };
       }
     }
-    console.log("doc.image before save:", doc.image);
     await doc.save();
     res.status(201).json(toClient(doc));
   } catch (e) {
@@ -202,10 +188,11 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 // Update (name/desc/points + optional new image/clear)
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can update tracks" });
+    }
     const t = await Track.findById(req.params.id);
     if (!t) return res.status(404).json({ error: "Track not found" });
-    if (t.owner && t.owner.toString() !== req.user.id)
-      return res.status(403).json({ error: "Not your track" });
 
     const { name, description, points, image, imageClear } = req.body;
 
@@ -231,12 +218,13 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
     } else if (typeof image === "string") {
       const parsed = parseDataUrl(image);
       if (imagePath && imagePath.instance === "String") {
-        t.image = image; // keep as data URL string
+        t.image = image;
       } else if (parsed) {
         t.image = { data: parsed.buffer, contentType: parsed.mime };
       }
-    } else if (imageClear === "true") {
-      t.image = undefined;
+    } else if (imageClear === true || imageClear === "true") {
+      t.set("image", undefined, { strict: false });
+      t.markModified("image");
     }
 
     await t.save();
@@ -250,10 +238,11 @@ router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
 // Optional: dedicated picture update endpoint (file only)
 router.put("/:id/picture", verifyToken, upload.single("image"), async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can update track pictures" });
+    }
     const t = await Track.findById(req.params.id);
     if (!t) return res.status(404).json({ error: "Track not found" });
-    if (t.owner && t.owner.toString() !== req.user.id)
-      return res.status(403).json({ error: "Not your track" });
 
     if (!req.file) return res.status(400).json({ error: "No image file" });
 
@@ -269,10 +258,11 @@ router.put("/:id/picture", verifyToken, upload.single("image"), async (req, res)
 // Delete
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can delete tracks" });
+    }
     const t = await Track.findById(req.params.id);
     if (!t) return res.status(404).json({ error: "Track not found" });
-    if (t.owner && t.owner.toString() !== req.user.id)
-      return res.status(403).json({ error: "Not your track" });
 
     await t.deleteOne();
     res.json({ ok: true });

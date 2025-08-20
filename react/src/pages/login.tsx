@@ -24,9 +24,13 @@ export default function Login() {
       await loginWithCredentials(username, password);
       navigate("/");
     } catch (err: any) {
-      // Show a friendly message on error
-      const serverMsg = err?.response?.data?.error || "Login failed";
-      setMsg(serverMsg);
+      // Check for suspension message
+      const serverMsg = err?.response?.data?.error;
+      if (serverMsg === "Your account is suspended.") {
+        setMsg("Your account is suspended from this site.");
+      } else {
+        setMsg(serverMsg || "Login failed");
+      }
     } finally {
       setLoading(false);
     }

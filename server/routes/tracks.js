@@ -1,60 +1,67 @@
-// server/routes/tracks.js
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const mongoose = require("mongoose");
+// This file handles all the API routes for tracks (like songs or paths) in the app
 
-const router = express.Router();
+// Import the libraries we need
+const express = require("express");      // For creating the API routes
+const jwt = require("jsonwebtoken");     // For checking if a user is logged in
+const multer = require("multer");        // For handling file uploads (like images)
+const mongoose = require("mongoose");    // For talking to the MongoDB database
 
-/* ===== Model (fallback if not provided elsewhere) ===== */
+const router = express.Router();         // This lets us define our API endpoints
+
+// ====== SETUP THE TRACK MODEL (how a track looks in the database) ======
 let Track;
 try {
+  // Try to load the Track model from another file
   const mod = require("../models/tracks");
   Track = mod.Track || mod;
 } catch {
+  // If that fails, define it right here
   const TrackSchema = new mongoose.Schema(
     {
-      name: { type: String, required: true },
-      description: String,
-      points: { type: [[Number]], default: [] }, // [[lat,lng], ...]
-      owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      image: { data: Buffer, contentType: String }, // stored in DB
+      name: { type: String, required: true }, // Track name (required)
+      description: String,                    // Track description (optional)
+      points: { type: [[Number]], default: [] }, // List of points (like GPS coordinates)
+      owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Who created it
+      image: { data: Buffer, contentType: String }, // The image (stored in the database)
     },
-    { timestamps: true }
+    { timestamps: true } // Automatically add createdAt and updatedAt fields
   );
   Track = mongoose.models.Track || mongoose.model("Track", TrackSchema);
 }
 
-/* ===== Multer (optional: supports multipart too) ===== */
+// ====== SETUP FILE UPLOADS (for images) ======
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file limit (JSON body limit is set in server/index.js)
+  storage: multer.memoryStorage(), // Store files in memory (not on disk)
+  limits: { fileSize: 5 * 1024 * 1024 }, // Max file size: 5MB
   fileFilter: (_req, file, cb) => {
+    // Only allow image files
     const ok = /^image\/(png|jpe?g|webp|gif)$/i.test(file.mimetype);
     cb(ok ? null : new Error("Only image files (png/jpg/webp/gif) are allowed"), ok);
   },
 });
 
-/* ===== JWT auth ===== */
-// Expects tokens signed like: jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" })
+// ====== CHECK IF USER IS LOGGED IN (JWT) ======
 function verifyToken(req, res, next) {
+  // Look for the token in the request headers
   const h = req.headers.authorization;
-  if (!h) return res.status(401).json({ error: "No token" });
+  if (!h) return res.status(401).json({ error: "No token" }); // Not logged in
   try {
+    // Check if the token is valid
     const token = h.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded || !decoded.id) {
       return res.status(403).json({ error: "Invalid token payload" });
     }
-    req.user = decoded; // { id, iat, exp, role }
-    next();
+    req.user = decoded; // Save user info for later
+    next(); // Go to the next step
   } catch {
     return res.status(403).json({ error: "Invalid token" });
   }
 }
 
-/* ===== Helpers ===== */
-// Parse data URL: data:<mime>;base64,<payload>
+// ====== HELPER FUNCTIONS ======
+
+// This turns a data URL (like "data:image/png;base64,...") into a buffer we can store
 function parseDataUrl(str) {
   if (typeof str !== "string") return null;
   const m = str.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
@@ -66,10 +73,11 @@ function parseDataUrl(str) {
   }
 }
 
+// This prepares a track object to send to the frontend (browser)
 function toClient(t) {
   const out = t.toObject ? t.toObject() : t;
 
-  // Fix: handle BSON Binary type (from MongoDB)
+  // Figure out if the image is stored as a buffer or a string
   let hasBuffer = false;
   if (
     out?.image &&
@@ -77,23 +85,24 @@ function toClient(t) {
     out.image !== null &&
     out.image.data
   ) {
-    // Node.js Buffer
+    // If it's a buffer with data, mark it
     if (typeof out.image.data.length === "number" && out.image.data.length > 0) {
       hasBuffer = true;
     }
-    // BSON Binary (from MongoDB)
+    // If it's a special MongoDB type, also mark it
     else if (typeof out.image.data.length === "function" && out.image.data.length() > 0) {
       hasBuffer = true;
     }
-    // BSON Binary (sometimes ._bsontype === 'Binary')
     else if (out.image.data._bsontype === "Binary" && out.image.data.buffer && out.image.data.buffer.length > 0) {
       hasBuffer = true;
     }
   }
 
+  // If the image is a string that starts with "data:image/"
   const isDataUrlString =
     typeof out?.image === "string" && /^data:image\//i.test(out.image);
 
+  // Return the track, but for images, give a URL if it's a buffer, or the string if it's a data URL
   return {
     ...out,
     image: hasBuffer
@@ -102,22 +111,22 @@ function toClient(t) {
   };
 }
 
-/* ===== Routes (mounted at /api/tracks) ===== */
+// ====== API ROUTES ======
 
-// GET /api/tracks
+// Get a list of all tracks
 router.get("/", async (_req, res) => {
   try {
     const docs = await Track.find({})
       .select("name description points owner createdAt image")
       .sort({ createdAt: -1 });
-    res.json(docs.map(toClient));
+    res.json(docs.map(toClient)); // Send the tracks to the browser
   } catch (e) {
     console.error("GET /api/tracks error:", e);
     res.status(500).json({ message: "Failed to fetch tracks" });
   }
 });
 
-// GET /api/tracks/:id
+// Get a single track by its ID
 router.get("/:id", async (req, res) => {
   try {
     const t = await Track.findById(req.params.id)
@@ -130,7 +139,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Serve image binary
+// Get the image for a track (as a real image, not a string)
 router.get("/:id/picture", async (req, res) => {
   try {
     const t = await Track.findById(req.params.id).select("image");
@@ -143,24 +152,27 @@ router.get("/:id/picture", async (req, res) => {
   }
 });
 
-// Create track (accepts: JSON with data URL, or multipart file)
+// Create a new track (user must be logged in)
 router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const { name, description, points, image } = req.body;
     if (!name) return res.status(400).json({ error: "name is required" });
 
+    // If points is a string, try to turn it into an array
     let pts = points;
     if (typeof pts === "string") {
       try { pts = JSON.parse(pts); } catch { pts = []; }
     }
 
+    // Make a new track
     const doc = new Track({
       name,
       description,
       points: Array.isArray(pts) ? pts : [],
-      owner: req.user.id,
+      owner: req.user.id, // Set the owner to the logged-in user
     });
 
+    // Handle the image if there is one (file or data URL)
     if (req.file) {
       const imagePath = Track.schema?.path("image");
       if (imagePath && imagePath.instance === "String") {
@@ -177,99 +189,105 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
         doc.image = { data: parsed.buffer, contentType: parsed.mime };
       }
     }
-    await doc.save();
-    res.status(201).json(toClient(doc));
+    await doc.save(); // Save the track in the database
+    res.status(201).json(toClient(doc)); // Send the new track to the browser
   } catch (e) {
     console.error("POST /api/tracks error:", e);
     res.status(400).json({ message: "Failed to create track" });
   }
 });
 
-// Update (name/desc/points + optional new image/clear)
+// Update a track (only the owner or an admin can do this)
 router.put("/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ error: "Only admins can update tracks" });
+    const track = await Track.findById(req.params.id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
+
+    // Only the owner or an admin can update
+    const isOwner = track.owner && track.owner.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: "Only the owner or an admin can update this track" });
     }
-    const t = await Track.findById(req.params.id);
-    if (!t) return res.status(404).json({ error: "Track not found" });
 
-    const { name, description, points, image, imageClear } = req.body;
+    // Get image fields from the request
+    const { image, imageClear } = req.body || {};
 
-    if (typeof name !== "undefined") t.name = name;
-    if (typeof description !== "undefined") t.description = description;
-
-    if (typeof points !== "undefined") {
-      let pts = points;
-      if (typeof pts === "string") {
-        try { pts = JSON.parse(pts); } catch { pts = t.points || []; }
-      }
-      t.points = Array.isArray(pts) ? pts : t.points;
-    }
+    // Update the track fields if they are provided
+    if (typeof req.body.name === "string") track.name = req.body.name;
+    if (typeof req.body.description === "string") track.description = req.body.description;
+    if (Array.isArray(req.body.points)) track.points = req.body.points;
 
     const imagePath = Track.schema?.path("image");
 
+    // Handle image update (file, data URL, or clear)
     if (req.file) {
       if (imagePath && imagePath.instance === "String") {
-        t.image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+        track.image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
       } else {
-        t.image = { data: req.file.buffer, contentType: req.file.mimetype };
+        track.image = { data: req.file.buffer, contentType: req.file.mimetype };
       }
     } else if (typeof image === "string") {
       const parsed = parseDataUrl(image);
       if (imagePath && imagePath.instance === "String") {
-        t.image = image;
+        track.image = image;
       } else if (parsed) {
-        t.image = { data: parsed.buffer, contentType: parsed.mime };
+        track.image = { data: parsed.buffer, contentType: parsed.mime };
       }
-    } else if (imageClear === true || imageClear === "true") {
-      t.set("image", undefined, { strict: false });
-      t.markModified("image");
+    } else if (typeof imageClear !== "undefined" && (imageClear === true || imageClear === "true")) {
+      // If imageClear is set, remove the image
+      track.set("image", undefined, { strict: false });
+      track.markModified("image");
     }
 
-    await t.save();
-    res.json(toClient(t));
+    await track.save(); // Save the changes
+    res.json(toClient(track)); // Send the updated track to the browser
   } catch (e) {
     console.error("PUT /api/tracks/:id error:", e);
-    res.status(400).json({ message: "Failed to update track" });
+    res.status(500).json({ error: "Failed to update track" });
   }
 });
 
-// Optional: dedicated picture update endpoint (file only)
+// (Admins only) Update just the picture for a track
 router.put("/:id/picture", verifyToken, upload.single("image"), async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ error: "Only admins can update track pictures" });
     }
-    const t = await Track.findById(req.params.id);
-    if (!t) return res.status(404).json({ error: "Track not found" });
+    const track = await Track.findById(req.params.id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
 
     if (!req.file) return res.status(400).json({ error: "No image file" });
 
-    t.image = { data: req.file.buffer, contentType: req.file.mimetype };
-    await t.save();
-    res.json(toClient(t));
+    track.image = { data: req.file.buffer, contentType: req.file.mimetype };
+    await track.save();
+    res.json(toClient(track));
   } catch (e) {
     console.error("PUT /api/tracks/:id/picture error:", e);
     res.status(400).json({ message: "Failed to update picture" });
   }
 });
 
-// Delete
+// Delete a track (only the owner or an admin can do this)
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ error: "Only admins can delete tracks" });
-    }
-    const t = await Track.findById(req.params.id);
-    if (!t) return res.status(404).json({ error: "Track not found" });
+    const track = await Track.findById(req.params.id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
 
-    await t.deleteOne();
-    res.json({ ok: true });
+    // Only the owner or an admin can delete
+    const isOwner = track.owner && track.owner.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: "Only the owner or an admin can delete this track" });
+    }
+
+    await track.deleteOne(); // Remove the track from the database
+    res.json({ ok: true });  // Tell the browser it worked
   } catch (e) {
     console.error("DELETE /api/tracks/:id error:", e);
     res.status(400).json({ message: "Failed to delete track" });
   }
 });
 
+// Export all these routes so the main server can use them
 module.exports = router;

@@ -6,7 +6,7 @@ import { useAuth } from "../pages/AuthContext";
 import L from "leaflet";
 import markerIconPng from "leaflet/dist/images/marker-icon.png";
 import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getTracks, createTrack } from "../lib/tracks";
 import type { Track } from "../lib/tracks";
 import "../index.css";
@@ -64,12 +64,11 @@ export default function Map() {
 
   // User's geolocation
   const [myPos, setMyPos] = useState<LatLng | null>(null);
+  // State to trigger going to my location
+  const [goToMyLocation, setGoToMyLocation] = useState(false);
 
   // For navigation state (used for "Go on map" button)
   const location = useLocation();
-
-  // State to trigger going to my location
-  const [goToMyLocation, setGoToMyLocation] = useState(false);
 
   // Load tracks from backend on mount
   useEffect(() => {
@@ -103,7 +102,10 @@ export default function Map() {
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setMyPos([pos.coords.latitude, pos.coords.longitude]),
+      (pos) => {
+        setMyPos([pos.coords.latitude, pos.coords.longitude]);
+        setGoToMyLocation(true); // <-- trigger go to my location on first load
+      },
       () => {}
     );
   }, []);
@@ -131,9 +133,16 @@ export default function Map() {
   // Move map to a location if navigation state has a center (for "Go on map" button)
   function CenterMapOnLocation({ center }: { center?: [number, number] }) {
     const map = useMapEvents({});
+    const navigate = useNavigate();
+    const location = useLocation();
+
     useEffect(() => {
       if (center) {
-        map.setView(center, 16, { animate: true }); // Zoom in close
+        map.setView(center, 16, { animate: true });
+        // Clear navigation state after centering, but only if center was present
+        setTimeout(() => {
+          navigate(location.pathname, { replace: true, state: {} });
+        }, 500); // Give animation time to finish
       }
     }, [center]);
     return null;
@@ -144,7 +153,7 @@ export default function Map() {
     const map = useMapEvents({});
     useEffect(() => {
       if (trigger && myPos) {
-        map.setView(myPos, 16, { animate: true });
+        map.setView(myPos, 16, { animate: true }); // <-- zoom 16 for "Go to my location"
         onDone();
       }
     }, [trigger, myPos]);
@@ -396,7 +405,6 @@ export default function Map() {
       {places.length === 0 && (
         <div className="map-loading">Loading tracks…</div>
       )}
-      {places.length === 0 && <p className="info">Loading tracks…</p>}
     </div>
   );
 }

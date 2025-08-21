@@ -105,3 +105,5 @@ export async function deleteTrack(id: string): Promise<{ ok: true } | Track | un
   const { data } = await api.delete(`${TRACKS_BASE}/${id}`);
   return data && (data as any)._id ? normalizeTrack(data) : data;
 }
+
+// In the component file

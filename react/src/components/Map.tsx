@@ -1,25 +1,21 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useState, useRef } from "react";
-import "../style/sidebar.css";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "./sidebar";
 import { useAuth } from "../pages/AuthContext";
-import "../index.css";
-
 import L from "leaflet";
-import type { Map as LeafletMap, LatLngBoundsExpression } from "leaflet";
 import markerIconPng from "leaflet/dist/images/marker-icon.png";
 import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
-
-// Backend tracks API (must support `image?: string`)
+import { useLocation } from "react-router-dom";
 import { getTracks, createTrack } from "../lib/tracks";
 import type { Track } from "../lib/tracks";
+import "../index.css";
 
-const isRenderableImage = (src?: string): boolean => {
-  if (!src) return false;
-  return /^data:image\//i.test(src) || src.startsWith("/api/");
-};
+// Helper to check if an image string is displayable
+const isRenderableImage = (src?: string): boolean =>
+  !!src && (/^data:image\//i.test(src) || src.startsWith("/api/"));
 
+// Default Leaflet marker icon
 const defaultIcon = L.icon({
   iconUrl: markerIconPng,
   shadowUrl: markerShadowPng,
@@ -31,67 +27,66 @@ const defaultIcon = L.icon({
 
 type LatLng = [number, number];
 
+// What a marker/track looks like
 export interface LocationItem {
   id: string;
   name: string;
   latlng: LatLng;
   description?: string;
-  image?: string; // base64 data URL (persisted to DB)
+  image?: string;
   createdAt?: number;
 }
 
-// Israel bounds
-const IsraelBounds: LatLngBoundsExpression = [
+// Map bounds for Israel
+const IsraelBounds: [[number, number], [number, number]] = [
   [29.4, 34.2],
   [33.3, 35.9],
 ];
 
-// Interaction modes
+// Map interaction modes
 type MapMode = "drag" | "pin-form";
 
-// Local id helper (fallback only)
-const makeId = () =>
-  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-
+// Main Map component
 export default function Map() {
   const { user } = useAuth();
-  const canPin = !!user; // only authenticated users can add points
+  const canPin = !!user; // Only logged-in users can add pins
 
-  // Markers (synced with DB via /api/tracks)
+  // State for all markers/tracks
   const [places, setPlaces] = useState<LocationItem[]>([]);
-
-  // Mode state
+  // State for map mode (drag or add pin)
   const [mode, setMode] = useState<MapMode>("drag");
-
-  // Pin form state
+  // State for the pin form
   const [formOpen, setFormOpen] = useState(false);
   const [formCoords, setFormCoords] = useState<LatLng | null>(null);
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [formImage, setFormImage] = useState<string | undefined>(undefined); // <-- used
+  const [formImage, setFormImage] = useState<string | undefined>(undefined);
 
-  // Geolocation
+  // User's geolocation
   const [myPos, setMyPos] = useState<LatLng | null>(null);
 
-  // Map ref
-  const mapRef = useRef<LeafletMap | null>(null);
+  // For navigation state (used for "Go on map" button)
+  const location = useLocation();
 
-  // Load existing tracks from server (DB)
+  // State to trigger going to my location
+  const [goToMyLocation, setGoToMyLocation] = useState(false);
+
+  // Load tracks from backend on mount
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const data: Track[] = await getTracks();
         if (cancelled) return;
-        // Convert Track -> LocationItem (use first point as marker position)
+        // Convert backend tracks to markers
         const normalized: LocationItem[] = (data || [])
           .filter((t) => Array.isArray(t.points) && t.points.length > 0)
           .map((t) => ({
-            id: t._id!,                                // MongoDB id
+            id: t._id!,
             name: t.name,
-            latlng: t.points[0] as LatLng,             // first point for marker
+            latlng: t.points[0] as LatLng,
             description: t.description,
-            image: t.image,                            // <-- KEEP IMAGE AS IS FROM BACKEND
+            image: t.image,
             createdAt: t.createdAt ? new Date(t.createdAt).getTime() : Date.now(),
           }));
         setPlaces(normalized);
@@ -104,7 +99,7 @@ export default function Map() {
     };
   }, []);
 
-  // Request geolocation once
+  // Get user's location once
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
@@ -113,14 +108,7 @@ export default function Map() {
     );
   }, []);
 
-  // Center map when geolocation arrives
-  useEffect(() => {
-    if (!myPos || !mapRef.current) return;
-    const m = mapRef.current;
-    m.setView(myPos, Math.max(m.getZoom(), 12), { animate: true });
-  }, [myPos]);
-
-  // Map click handler: open form in pin-form mode (auth required)
+  // Handle map clicks for adding pins
   function MapClicker() {
     useMapEvents({
       click: (e) => {
@@ -140,7 +128,30 @@ export default function Map() {
     return null;
   }
 
-  // Save pin via backend (DB), including image base64
+  // Move map to a location if navigation state has a center (for "Go on map" button)
+  function CenterMapOnLocation({ center }: { center?: [number, number] }) {
+    const map = useMapEvents({});
+    useEffect(() => {
+      if (center) {
+        map.setView(center, 16, { animate: true }); // Zoom in close
+      }
+    }, [center]);
+    return null;
+  }
+
+  // Helper component to center map on your location when triggered
+  function GoToMyLocation({ trigger, myPos, onDone }: { trigger: boolean; myPos: LatLng | null; onDone: () => void }) {
+    const map = useMapEvents({});
+    useEffect(() => {
+      if (trigger && myPos) {
+        map.setView(myPos, 16, { animate: true });
+        onDone();
+      }
+    }, [trigger, myPos]);
+    return null;
+  }
+
+  // Save a new pin to the backend
   const handleSaveFromForm = async () => {
     if (!canPin) {
       alert("Please log in to add points");
@@ -150,37 +161,29 @@ export default function Map() {
       alert("Please enter a name");
       return;
     }
-
-    // Ensure JWT exists so axios interceptor adds Authorization header
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login first.");
       return;
     }
-
     try {
-      // Backend expects: { name, description?, points: [[lat,lng], ...], image? }
       const created = await createTrack({
         name: formName.trim(),
         description: formDescription || undefined,
         points: [formCoords],
-        image: formImage, // <-- SEND image to server
+        image: formImage,
       });
-
-      // Reflect newly created track in UI (use first point as marker)
       setPlaces((prev) => [
         ...prev,
         {
-          id: created._id || makeId(),
+          id: created._id || String(Date.now()),
           name: created.name,
           latlng: (created.points?.[0] as LatLng) ?? formCoords,
           description: created.description,
-          image: created.image, // <-- keep image from server response
+          image: created.image,
           createdAt: created.createdAt ? new Date(created.createdAt).getTime() : Date.now(),
         },
       ]);
-
-      // Reset form
       setFormOpen(false);
       setFormCoords(null);
       setFormName("");
@@ -192,24 +195,7 @@ export default function Map() {
     }
   };
 
-  // Update cursor and close form when switching to drag
-  useEffect(() => {
-    const mapEl = mapRef.current?.getContainer();
-    if (!mapEl) return;
-
-    if (!canPin) {
-      mapEl.style.cursor = "grab";
-      return;
-    }
-    mapEl.style.cursor = mode === "drag" ? "grab" : "crosshair";
-
-    if (mode === "drag") {
-      setFormOpen(false);
-      setFormCoords(null);
-    }
-  }, [mode, canPin]);
-
-  // File -> base64 data URL (image preview + send to server)
+  // File input for pin image
   const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -218,10 +204,10 @@ export default function Map() {
     reader.readAsDataURL(file);
   };
 
-  // Default center: geolocation or Jerusalem-ish
+  // Default map center: user's location or Jerusalem
   const center: LatLng = useMemo(() => myPos || [31.78, 35.22], [myPos]);
 
-  // Safe mode setter: block pin-form if not logged in
+  // Change map mode safely
   const setModeSafe = (next: MapMode) => {
     if (next === "pin-form" && !canPin) {
       alert("Only logged-in users can add points");
@@ -231,11 +217,9 @@ export default function Map() {
     setMode(next);
   };
 
-
-
   return (
     <div className="map-page">
-      {/* Floating mode controls */}
+      {/* Toolbar for map mode and pin controls */}
       <div className="floating-controls">
         <div className="map-toolbar">
           <div className="map-toolbar__header">
@@ -246,7 +230,6 @@ export default function Map() {
               </span>
             )}
           </div>
-
           <div className="map-toolbar__row">
             <button
               onClick={() => setModeSafe("drag")}
@@ -255,8 +238,6 @@ export default function Map() {
             >
               drag
             </button>
-
-            {/* pin (form): click on the map to choose location */}
             <button
               onClick={() => setModeSafe("pin-form")}
               disabled={!canPin}
@@ -265,8 +246,6 @@ export default function Map() {
             >
               pin (form)
             </button>
-
-            {/* pin my location: open form at myPos */}
             <button
               onClick={() => {
                 if (!canPin) {
@@ -276,10 +255,6 @@ export default function Map() {
                 if (!myPos) {
                   alert("Current location is not available yet");
                   return;
-                }
-                if (mapRef.current) {
-                  const m = mapRef.current;
-                  m.setView(myPos, Math.max(m.getZoom(), 12), { animate: true });
                 }
                 setFormCoords(myPos);
                 setFormName("");
@@ -293,8 +268,15 @@ export default function Map() {
             >
               pin my location
             </button>
+            <button
+              onClick={() => setGoToMyLocation(true)}
+              disabled={!myPos}
+              className="map-btn"
+              title="Go to my current location"
+            >
+              Go to my location
+            </button>
           </div>
-
           <div className="map-toolbar__hint">
             {mode === "drag"
               ? "Drag the map freely. Click does nothing."
@@ -303,12 +285,11 @@ export default function Map() {
         </div>
       </div>
 
-      {/* Map */}
+      {/* The actual map */}
       <MapContainer
         center={center}
         zoom={8}
         className="map-container"
-        ref={mapRef}
         maxBounds={IsraelBounds}
         maxBoundsViscosity={0.8}
       >
@@ -317,17 +298,23 @@ export default function Map() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Current location marker */}
+        {/* Show your current location */}
         {myPos && (
           <Marker position={myPos} icon={defaultIcon}>
             <Popup>you are here</Popup>
           </Marker>
         )}
 
-        {/* Click handler honoring mode + auth */}
+        {/* Handle map clicks for adding pins */}
         <MapClicker />
 
-        {/* Existing markers (from DB) */}
+        {/* Move map to track location if needed */}
+        <CenterMapOnLocation center={location.state?.center} />
+
+        {/* Go to my location when triggered */}
+        <GoToMyLocation trigger={goToMyLocation} myPos={myPos} onDone={() => setGoToMyLocation(false)} />
+
+        {/* Show all track markers */}
         {places.map((p) => (
           <Marker key={p.id} position={p.latlng} icon={defaultIcon}>
             <Popup>
@@ -342,6 +329,7 @@ export default function Map() {
                     alt={p.name}
                     className="popup-image"
                     style={{ maxWidth: 200, maxHeight: 200 }}
+                    loading="lazy"
                   />
                 )}
               </div>
@@ -350,38 +338,34 @@ export default function Map() {
         ))}
       </MapContainer>
 
-      {/* Sidebar */}
+      {/* Sidebar for selecting locations */}
       <Sidebar
         places={places}
-        onSelectLocation={(latlng) => {
-          const m = mapRef.current;
-          if (m) m.setView(latlng, Math.max(m.getZoom(), 12), { animate: true });
+        onSelectLocation={(_latlng) => {
+          // Move map to selected marker (optional: you can add a zoom here)
+          // You could use a ref and setView if you want to zoom in
         }}
       />
 
-      {/* Add-point form panel */}
+      {/* Pin form for adding a new point */}
       {formOpen && formCoords && (
         <div className="form-panel">
           <h6 className="form-panel__title">Add point</h6>
           <div className="form-panel__coords">
             lat: {formCoords[0].toFixed(5)}, lng: {formCoords[1].toFixed(5)}
           </div>
-
           <input
             type="text"
             placeholder="name"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
           />
-
           <textarea
             placeholder="description (optional)"
             value={formDescription}
             onChange={(e) => setFormDescription(e.target.value)}
             rows={3}
           />
-
-          {/* Image input + live preview */}
           <input type="file" accept="image/*" onChange={onImageChange} />
           {formImage && (
             <img
@@ -390,7 +374,6 @@ export default function Map() {
               style={{ maxWidth: "100%", marginTop: 6, borderRadius: 6 }}
             />
           )}
-
           <div className="form-panel__actions">
             <button className="form-btn" onClick={handleSaveFromForm}>
               save
@@ -408,6 +391,12 @@ export default function Map() {
           </div>
         </div>
       )}
+
+      {/* Loading indicator for tracks */}
+      {places.length === 0 && (
+        <div className="map-loading">Loading tracks…</div>
+      )}
+      {places.length === 0 && <p className="info">Loading tracks…</p>}
     </div>
   );
 }

@@ -198,4 +198,53 @@ font: inherit;
   padding: 4px 8px;
 }
 
+.leaflet-popup-content {
+  max-width: 220px !important;
+  min-width: 180px;
+  word-break: break-word;
+}
 
+.popup-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.popup-image {
+  max-width: 100%;
+  max-height: 200px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.reviews-list {
+  max-height: 12em;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin: 0;
+}
+
+.review-item {
+  margin-bottom: 8px;
+}
+.review-header {
+  display: flex;
+  align-items: center;
+}
+.review-text {
+  display: block;
+  white-space: pre-line;
+  margin-left: 16px;
+}
+
+.review-delete-btn {
+  margin-left: 8px;
+  font-size: 12px;
+  color: red;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}

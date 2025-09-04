@@ -12,7 +12,7 @@ const router = express.Router();         // This lets us define our API endpoint
 let Track;
 try {
   // Try to load the Track model from another file
-  const mod = require("../models/tracks");
+  const mod = require("../models/trackschema");
   Track = mod.Track || mod;
 } catch {
   // If that fails, define it right here
@@ -117,7 +117,7 @@ function toClient(t) {
 router.get("/", async (_req, res) => {
   try {
     const docs = await Track.find({})
-      .select("name description points owner createdAt image")
+      .select("name description points owner createdAt image reviews")
       .sort({ createdAt: -1 });
     res.json(docs.map(toClient)); // Send the tracks to the browser
   } catch (e) {
@@ -130,7 +130,7 @@ router.get("/", async (_req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const t = await Track.findById(req.params.id)
-      .select("name description points owner createdAt image");
+      .select("name description points owner createdAt image reviews");
     if (!t) return res.status(404).json({ message: "Not found" });
     res.json(toClient(t));
   } catch (e) {
@@ -286,6 +286,75 @@ router.delete("/:id", verifyToken, async (req, res) => {
   } catch (e) {
     console.error("DELETE /api/tracks/:id error:", e);
     res.status(400).json({ message: "Failed to delete track" });
+  }
+});
+
+// Add a review to a track
+router.post("/:id/reviews", verifyToken, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "Text is required" });
+
+    const track = await Track.findById(req.params.id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
+
+    const review = {
+      user: req.user.username,
+      text,
+      createdAt: new Date(),
+    };
+    track.reviews = track.reviews || [];
+    track.reviews.push(review);
+    await track.save();
+
+    res.json(review);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to add review" });
+  }
+});
+
+// Edit a review (only by the author)
+router.put("/:id/reviews/:index", verifyToken, async (req, res) => {
+  try {
+    const { text } = req.body;
+    const { id, index } = req.params;
+    const track = await Track.findById(id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
+
+    const review = track.reviews[index];
+    if (!review) return res.status(404).json({ error: "Review not found" });
+
+    if (review.user !== req.user.username) {
+      return res.status(403).json({ error: "You can only edit your own review" });
+    }
+
+    review.text = text;
+    await track.save();
+    res.json(review);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to edit review" });
+  }
+});
+
+// Delete a review (admin only)
+router.delete("/:id/reviews/:index", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can delete reviews" });
+    }
+    const { id, index } = req.params;
+    const track = await Track.findById(id);
+    if (!track) return res.status(404).json({ error: "Track not found" });
+
+    if (!track.reviews || !track.reviews[index]) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    track.reviews.splice(index, 1);
+    await track.save();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to delete review" });
   }
 });
 

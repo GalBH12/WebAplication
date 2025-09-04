@@ -39,8 +39,6 @@ export default function Tracks() {
   const [editImageClear, setEditImageClear] = useState<boolean>(false);
 
   const [savingEdit, setSavingEdit] = useState(false);
-  
-
   // ===== Load tracks =====
   const load = async () => {
     setLoading(true);
@@ -248,7 +246,9 @@ export default function Tracks() {
                 <div className="actions">
                   {p.points && p.points.length > 0 && (
                     <button
-                      onClick={() => navigate("/", { state: { center: p.points[0] } })}
+                      onClick={() => {
+                        navigate("/", { state: { center: [...p.points[0]] } });
+                      }}
                     >
                       Go on map
                     </button>

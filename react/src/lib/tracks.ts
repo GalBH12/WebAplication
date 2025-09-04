@@ -5,6 +5,7 @@ import { api } from "./api";
 export type LatLng = [number, number];
 
 export interface Track {
+  reviews: never[];
   _id: string;
   name: string;
   description?: string;

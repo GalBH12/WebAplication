@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../style/sidebar.css";
 import { useAuth } from "../pages/AuthContext";
-import type { LocationItem } from "./Map";
+import type {LocationItem} from "../types/location";
 
 interface SidebarProps {
   places?: LocationItem[];

@@ -8,7 +8,7 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const User = require("./models/user");
+const User = require("./models/userschema");
 
 const app = express();
 
@@ -110,7 +110,6 @@ app.post("/api/register", async (req, res) => {
     await User.create({ username, email, password: hash });
     res.json({ success: true });
   } catch (e) {
-    console.error("[REGISTER] error:", e);
     res.status(500).json({ error: "server error" });
   }
 });
@@ -143,7 +142,6 @@ app.post("/api/login", async (req, res) => {
       },
     });
   } catch (e) {
-    console.error("[LOGIN] error:", e);
     res.status(500).json({ error: "server error" });
   }
 });
@@ -171,7 +169,6 @@ app.post("/api/forgotpasssender", async (req, res) => {
 
     res.json({ sent: true });
   } catch (e) {
-    console.error("[FORGOT] error:", e);
     res.status(500).json({ error: "server error" });
   }
 });
@@ -196,7 +193,6 @@ app.post("/api/resetpass/:id/:token", async (req, res) => {
     await user.save();
     res.json({ success: true });
   } catch (e) {
-    console.error("[RESET LINK] error:", e);
     res.status(500).json({ error: "server error" });
   }
 });
@@ -215,7 +211,6 @@ app.post("/api/resetpass", async (req, res) => {
     await user.save();
     res.json({ message: "Password changed successfully" });
   } catch (e) {
-    console.error("[RESET SELF] error:", e);
     res.status(500).json({ error: "server error" });
   }
 });
@@ -224,7 +219,6 @@ app.post("/api/resetpass", async (req, res) => {
    Tracks routes (images in DB)
    ========================= */
 app.use("/api/tracks", require("./routes/tracks"));
-// (IMPORTANT) Do not mount /api/tracks more than once
 
 /* =========================
    Server start

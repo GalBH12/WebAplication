@@ -6,6 +6,7 @@ import { getTracks, deleteTrack, updateTrack, getTrack } from "../lib/tracks";
 import type { Track } from "../lib/tracks";
 import { useAuth } from "../lib/auth";
 import "../style/tracks.css";
+import { FaWaze } from "react-icons/fa";
 
 type SortBy = "name" | "created";
 
@@ -245,13 +246,24 @@ export default function Tracks() {
                 </div>
                 <div className="actions">
                   {p.points && p.points.length > 0 && (
-                    <button
-                      onClick={() => {
-                        navigate("/", { state: { center: [...p.points[0]] } });
-                      }}
-                    >
-                      Go on map
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          navigate("/", { state: { center: [...p.points[0]] } });
+                        }}
+                      >
+                        Go on map
+                      </button>
+                      <a
+                        href={`https://waze.com/ul?ll=${p.points[0][0]},${p.points[0][1]}&navigate=yes`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Navigate with Waze"
+                        style={{ marginLeft: "8px", verticalAlign: "middle" }}
+                      >
+                        <FaWaze size={24} color="#33CCFF" />
+                      </a>
+                    </>
                   )}
                   <button
                     onClick={() => openEdit(p)}

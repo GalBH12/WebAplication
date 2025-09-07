@@ -16,6 +16,7 @@ import { MapClicker } from "../components/MapClicker";
 import { CenterMapOnLocation } from "../components/CenterMapOnLocation";
 import { GoToMyLocation } from "../components/GoToMyLocation";
 import { ReviewSection } from "../components/ReviewFile";
+import { FaWaze } from "react-icons/fa";
 
 // Define MapMode type
 type MapMode = "drag" | "pin-form";
@@ -294,6 +295,16 @@ export default function Map() {
                 )}
                 {/* --- Review Section --- */}
                 <ReviewSection place={LocationItem} user={user} setPlaces={setPlaces} />
+                                              {/* --- Waze Icon --- */}
+                <a
+                  href={`https://waze.com/ul?ll=${LocationItem.latlng[0]},${LocationItem.latlng[1]}&navigate=yes`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Navigate with Waze"
+                  style={{ display: "flex", marginLeft: "200px", }}
+                >
+                  <FaWaze size={28} color="#33CCFF" />
+                </a>
               </div>
             </Popup>
           </Marker>

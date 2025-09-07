@@ -93,7 +93,7 @@ export function ReviewSection({
                       }}
                       title="Delete"
                     >
-                      Delete
+                      🗑️
                     </button>
                   )}
                 </div>

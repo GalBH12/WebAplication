@@ -168,7 +168,6 @@ export default function Tracks() {
         // If user explicitly cleared:
         payload.imageClear = true;
       }
-      // Note: points are not edited here; add if you have editPoints state
       
       const updated = await updateTrack(editing._id, payload);
       console.log("Track updated:", updated);

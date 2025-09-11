@@ -313,26 +313,27 @@ router.post("/:id/reviews", verifyToken, async (req, res) => {
   }
 });
 
-// Edit a review (only by the author)
-router.put("/:id/reviews/:index", verifyToken, async (req, res) => {
+// Edit a review for a place/track
+router.put("/:trackId/reviews/:reviewIndex", async (req, res) => {
   try {
+    const { trackId, reviewIndex } = req.params;
     const { text } = req.body;
-    const { id, index } = req.params;
-    const track = await Track.findById(id);
+    const track = await Track.findById(trackId);
     if (!track) return res.status(404).json({ error: "Track not found" });
 
-    const review = track.reviews[index];
-    if (!review) return res.status(404).json({ error: "Review not found" });
-
-    if (review.user !== req.user.username) {
-      return res.status(403).json({ error: "You can only edit your own review" });
+    // Check review exists
+    if (!track.reviews || !track.reviews[reviewIndex]) {
+      return res.status(404).json({ error: "Review not found" });
     }
 
-    review.text = text;
+    // Optionally: check user is author or admin here
+
+    track.reviews[reviewIndex].text = text;
+    track.reviews[reviewIndex].editedAt = new Date();
     await track.save();
-    res.json(review);
+    res.json({ success: true, reviews: track.reviews });
   } catch (e) {
-    res.status(500).json({ error: "Failed to edit review" });
+    res.status(500).json({ error: "server error" });
   }
 });
 

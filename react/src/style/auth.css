@@ -1,5 +1,70 @@
-.auth-layout{min-height:100vh;display:grid;place-items:center;background:radial-gradient(600px circle at 10% 10%, #172554 0, transparent 40%), radial-gradient(800px circle at 90% 20%, #1e293b 0, transparent 40%), #0b1220;color:#e5e7eb}
-.auth-card{background:#0f172a;border:1px solid #1f2937;border-radius:16px;padding:28px;min-width:min(92vw,440px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.auth-card input{width:100%;margin:8px 0;padding:12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e5e7eb}
-.auth-card button{width:100%;margin-top:10px;border:none;background:#2563eb;color:white;padding:12px;border-radius:12px;cursor:pointer}
-.auth-card a{color:#93c5fd}
+/* ============================
+   Auth layout (full-screen center)
+   ============================ */
+.auth-layout {
+  /* Fill viewport height and center content */
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+
+  /* Layered background: two soft radial spots + base color */
+  background:
+    radial-gradient(600px circle at 10% 10%, #172554 0, transparent 40%),
+    radial-gradient(800px circle at 90% 20%, #1e293b 0, transparent 40%),
+    #0b1220;
+
+  /* Base text color for the page */
+  color: #e5e7eb;
+}
+
+/* ============================
+   Auth card (form container)
+   ============================ */
+.auth-card {
+  background: #0f172a;                 /* Dark card background */
+  border: 1px solid #1f2937;           /* Subtle border for separation */
+  border-radius: 16px;                  /* Soft rounded corners */
+  padding: 28px;                        /* Comfortable inner spacing */
+
+  /* Responsive min-width: takes the smaller of 92vw or 440px */
+  min-width: min(92vw, 440px);
+
+  /* Depth / elevation */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+}
+
+/* ============================
+   Inputs (all text/date/password/etc.)
+   ============================ */
+.auth-card input {
+  width: 100%;                         /* Full width within the card */
+  margin: 8px 0;                       /* Vertical spacing between fields */
+  padding: 12px;                       /* Comfortable click/tap target */
+  border-radius: 12px;                 /* Rounded inputs to match card */
+  border: 1px solid #334155;           /* Subtle outline */
+  background: #0b1220;                 /* Slightly darker than card bg */
+  color: #e5e7eb;                      /* High contrast text */
+}
+
+/* ============================
+   Primary button (submit etc.)
+   ============================ */
+.auth-card button {
+  width: 100%;                         /* Stretch to form width */
+  margin-top: 10px;                    /* Space above the button */
+  border: none;                        /* Clean look (no default border) */
+  background: #2563eb;                 /* Primary brand blue */
+  color: white;                        /* Readable on blue */
+  padding: 12px;                       /* Size for comfortable tapping */
+  border-radius: 12px;                 /* Match input/card rounding */
+  cursor: pointer;                     /* Indicate interactivity */
+}
+
+/* ============================
+   Links (e.g., switch to login)
+   ============================ */
+.auth-card a {
+  color: #93c5fd;                      /* Lighter blue for links */
+  /* Tip: add :hover for better affordance if you like
+     e.g., .auth-card a:hover { text-decoration: underline; } */
+}

@@ -5,40 +5,47 @@ import { login as loginRequest } from "../lib/auth";
 
 // ---- Types ----
 
+/**
+ * User shape stored in the auth context and localStorage.
+ * Includes a normalized `_id` plus optional fields for backward compatibility.
+ */
 export type User = {
-  _id: string;
-  id?: string; // תאימות אם מגיע id במקום _id
+  _id: string;              // normalized id (falls back to `id` if needed)
+  id?: string;              // compatibility when API returns `id` instead of `_id`
   firstName?: string;
   lastName?: string;
   email?: string;
   phone?: string;
-  birthDate?: string; // ISO string
+  birthDate?: string;       // ISO string
   profilePicture?: string | null;
-  // שדות אופציונליים לתאימות לאחור:
+  // Optional, for backward compatibility across the app:
   username?: string;
   role?: string;
 };
 
+/**
+ * Public shape of the authentication context.
+ */
 export type AuthContextType = {
   user: User | null;
 
   /**
-   * תאימות לאחור:
-   * מאפשר לדפים להעביר user + token אחרי קריאת API עצמאית שלהם.
-   * לא נשמר סיסמה בשום מקום.
+   * Backward compatibility:
+   * Allows pages to pass user + token after their own API call.
+   * (No password is ever stored.)
    */
   login: (user: User, opts?: { token?: string }) => void;
 
   /**
-   * API מודרני:
-   * מבצע התחברות דרך lib/auth ומעדכן context + localStorage.
+   * Modern API:
+   * Performs login via lib/auth and updates context + localStorage.
    */
   loginWithCredentials: (username: string, password: string) => Promise<void>;
 
-  // התנתקות וניקוי טוקן
+  // Sign out and clear token
   logout: () => void;
 
-  // עדכון ידני של המשתמש (למשל אחרי עריכת פרופיל)
+  // Manually update the user (e.g., after profile edit)
   setUser: (user: User | null) => void;
 };
 
@@ -46,29 +53,45 @@ export type AuthContextType = {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ---- Provider ----
+
+/**
+ * AuthProvider
+ *
+ * - Holds the authenticated `user` in state and syncs to localStorage.
+ * - On mount, hydrates from localStorage (user + token) and sets Axios default header.
+ * - Exposes:
+ *    • login (compatibility method: set user + optional token)
+ *    • loginWithCredentials (calls API, stores token + user)
+ *    • logout (clears everything)
+ *    • setUser (manual update)
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // בעת טעינת האפליקציה: הידרציה מ-localStorage
+  // On app load: hydrate from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
-        // נרמול מזהה: אם אין _id אך יש id – נשתמש בו
+        // Normalize id: prefer _id; fallback to id
         const normalized: User = { ...parsed, _id: parsed?._id ?? parsed?.id ?? "" };
         setUser(normalized);
       } catch {
-        // מתעלמים בשקט
+        // ignore parse errors silently
       }
     }
+    // If a token exists, set Axios default Authorization header
     const tok = localStorage.getItem("token");
     if (tok) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${tok}`;
     }
   }, []);
 
-  // תאימות לאחור: קבלה של user + token חיצוני
+  /**
+   * Backward-compatible login:
+   * Accept external user + optional token, persist them, and set Axios header.
+   */
   const login: AuthContextType["login"] = (u, opts) => {
     const normalized: User = { ...u, _id: u?._id ?? u?.id ?? "" };
     setUser(normalized);
@@ -80,7 +103,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // מודרני: התחברות דרך lib/auth.ts
+  /**
+   * Modern login flow:
+   * Calls the API (via lib/auth), normalizes the user, stores token + user,
+   * and sets Axios default Authorization header.
+   */
   const loginWithCredentials: AuthContextType["loginWithCredentials"] = async (
     username,
     password
@@ -88,6 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // API request (returns { success, token, user })
     const data = await loginRequest({ username, password });
 
+    // Normalize user fields for internal consistency
     const nextUser: User = {
       _id: data.user?._id ?? data.user?.id ?? "",
       firstName: data.user?.firstName ?? data.user?.username ?? username ?? "",
@@ -96,7 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       phone: data.user?.phone ?? undefined,
       birthDate: data.user?.birthDate ?? undefined,
       profilePicture: data.user?.profilePicture ?? null,
-      // שדות תאימות אם קיימים במקומות אחרים
+      // compatibility fields
       username: data.user?.username,
       role: data.user?.role,
     };
@@ -110,6 +138,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  /**
+   * Clear user + token from state, localStorage, and Axios defaults.
+   */
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
@@ -125,6 +156,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 // ---- Hook to access AuthContext ----
+
+/**
+ * React hook to consume the AuthContext safely.
+ * Throws if used outside of an AuthProvider.
+ */
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");

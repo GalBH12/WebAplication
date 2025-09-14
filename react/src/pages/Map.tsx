@@ -1,21 +1,34 @@
+// Core Leaflet map components for React
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+// React hooks
 import { useEffect, useState, useRef } from "react";
+// Sidebar UI (list of places etc.)
 import Sidebar from "../components/sidebar";
+// Auth context for current user (used to allow pinning)
 import { useAuth } from "./AuthContext";
+// Leaflet core + default marker assets
 import L from "leaflet";
 import markerIconPng from "leaflet/dist/images/marker-icon.png";
 import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
+// Router location (used to optionally center map from other pages)
 import { useLocation } from "react-router-dom";
+// API helpers to fetch/create tracks
 import { getTracks, createTrack } from "../lib/tracks";
 import type { Track } from "../lib/tracks";
+// Global styles
 import "../index.css";
+// Local domain types
 import type { LocationItem, LatLng } from "../types/location";
+// Utility to validate image strings (base64/url)
 import { isRenderableImage } from "../utils/image";
+// Map interaction helpers/components
 import { MapClicker } from "../components/MapClicker";
 import { CenterMapOnLocation } from "../components/CenterMapOnLocation";
 import { GoToMyLocation } from "../components/GoToMyLocation";
+// Reviews UI rendered inside marker popup
 import { ReviewSection } from "../components/ReviewFile";
+// Waze icon for navigation link in popup
 import { FaWaze } from "react-icons/fa";
 
 // Define MapMode type
@@ -25,8 +38,8 @@ type MapMode = "drag" | "pin-form";
 const defaultIcon = L.icon({
   iconUrl: markerIconPng,
   shadowUrl: markerShadowPng,
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
+  iconAnchor: [12, 41],   // pixel anchor of the icon
+  popupAnchor: [1, -34],  // where popups open relative to the icon
   iconSize: [25, 41],
   shadowSize: [41, 41],
 });
@@ -38,40 +51,49 @@ const IsraelBounds: [[number, number], [number, number]] = [
 ];
 
 export default function Map() {
+  // Current logged-in user (null/undefined if not logged in)
   const { user } = useAuth();
-  const canPin = !!user;
+  const canPin = !!user; // only logged-in users can add pins
 
+  // Map state: loaded places/markers
   const [places, setPlaces] = useState<LocationItem[]>([]);
+  // Current interaction mode (drag vs. click-to-open-form)
   const [mode, setMode] = useState<MapMode>("drag");
+  // Pin form UI state + fields
   const [formOpen, setFormOpen] = useState(false);
   const [formCoords, setFormCoords] = useState<LatLng | null>(null);
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formImage, setFormImage] = useState<string | undefined>(undefined);
 
+  // Geolocation state
   const [myPos, setMyPos] = useState<LatLng | null>(null);
   const [goToMyLocation, setGoToMyLocation] = useState(false);
   const [cameFromCenter, setCameFromCenter] = useState(false);
 
+  // Router location (used for optional centering on a specific track)
   const location = useLocation();
 
+  // Default initial center (Jerusalem-ish)
   const initialCenter: LatLng = [31.78, 35.22];
 
   // Only auto-center to my location ONCE, and never if coming from navigation
   const autoCentered = useRef(false);
 
+  // Load tracks on mount
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const data: Track[] = await getTracks();
         if (cancelled) return;
+        // Normalize server Track -> LocationItem for map markers
         const normalized: LocationItem[] = (data || [])
           .filter((Track) => Array.isArray(Track.points) && Track.points.length > 0)
           .map((Track) => ({
             id: Track._id!,
             name: Track.name,
-            latlng: Track.points[0] as LatLng,
+            latlng: Track.points[0] as LatLng, // first point used as marker position
             description: Track.description,
             image: Track.image,
             createdAt: Track.createdAt ? new Date(Track.createdAt).getTime() : Date.now(),
@@ -82,11 +104,13 @@ export default function Map() {
         console.error("Failed to load tracks from server", err);
       }
     })();
+    // Cleanup flag to avoid setState after unmount
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Acquire geolocation and optionally auto-center once (unless navigated here)
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
@@ -103,12 +127,14 @@ export default function Map() {
     // Only run on mount and when navigation state changes
   }, [location.state?.center, cameFromCenter]);
 
+  // Mark that we arrived with a specific center (don't auto-center on GPS in that case)
   useEffect(() => {
     if (location.state?.center) {
       setCameFromCenter(true);
     }
   }, [location.state?.center]);
 
+  // Persist a new point from the form to server and UI state
   const handleSaveFromForm = async () => {
     if (!canPin) {
       alert("Please log in to add points");
@@ -130,6 +156,7 @@ export default function Map() {
         points: [formCoords],
         image: formImage,
       });
+      // Optimistically add to local state
       setPlaces((prev) => [
         ...prev,
         {
@@ -141,6 +168,7 @@ export default function Map() {
           createdAt: created.createdAt ? new Date(created.createdAt).getTime() : Date.now(),
         },
       ]);
+      // Reset form
       setFormOpen(false);
       setFormCoords(null);
       setFormName("");
@@ -152,6 +180,7 @@ export default function Map() {
     }
   };
 
+  // Handle image file input -> base64 preview in form
   const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -160,6 +189,7 @@ export default function Map() {
     reader.readAsDataURL(file);
   };
 
+  // Gate switching to "pin-form" if user not logged in
   const setModeSafe = (next: MapMode) => {
     if (next === "pin-form" && !canPin) {
       alert("Only logged-in users can add points");
@@ -208,6 +238,7 @@ export default function Map() {
                   alert("Current location is not available yet");
                   return;
                 }
+                // Open form prefilled at current GPS location
                 setFormCoords(myPos);
                 setFormName("");
                 setFormDescription("");
@@ -295,7 +326,7 @@ export default function Map() {
                 )}
                 {/* --- Review Section --- */}
                 <ReviewSection place={LocationItem} user={user} setPlaces={setPlaces} />
-                                              {/* --- Waze Icon --- */}
+                {/* --- Waze Icon (deep-link to navigation) --- */}
                 <a
                   href={`https://waze.com/ul?ll=${LocationItem.latlng[0]},${LocationItem.latlng[1]}&navigate=yes`}
                   target="_blank"
@@ -311,7 +342,7 @@ export default function Map() {
         ))}
       </MapContainer>
 
-      {/* Sidebar for selecting locations */}
+      {/* Sidebar for selecting locations (currently only passes list + placeholder onSelect) */}
       <Sidebar
         places={places}
         onSelectLocation={(_latlng) => {
@@ -371,4 +402,3 @@ export default function Map() {
     </div>
   );
 }
-

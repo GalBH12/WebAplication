@@ -1,70 +1,93 @@
+/* ============================
+   Global styles
+   ============================ */
 body {
-  font-family: 'Assistant', sans-serif;
+  font-family: 'Assistant', sans-serif; /* Clean readable font */
   margin: 0;
   padding: 0;
-  direction: ltr;
-  
+  direction: ltr;                       /* Left-to-right text flow */
 }
 
+/* ============================
+   Register Page Container
+   ============================ */
 .register-container {
   display: flex;
-  justify-content: center; /* מרכז אופקית */
-  align-items: center;     /* מרכז אנכית */
-  height: 100vh;
-  width: 100vw;
-  background-color: #1f1f1f; /* כהה ונעים לעין */
+  justify-content: center; /* Center form horizontally */
+  align-items: center;     /* Center form vertically */
+  height: 100vh;           /* Full screen height */
+  width: 100vw;            /* Full screen width */
+  background-color: #1f1f1f; /* Dark neutral background */
 }
 
+/* ============================
+   Register Form Card
+   ============================ */
 .register-form {
-  background-color: #0f0b2f;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-  width: 335px;
-  direction: center;
-  text-align: right;
+  background-color: #0f0b2f;                 /* Dark card background */
+  padding: 40px;                             /* Inner spacing */
+  border-radius: 16px;                       /* Rounded corners */
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);   /* Soft shadow */
+  width: 335px;                              /* Fixed width */
+  text-align: right;                         /* Right-align text/labels */
+  direction: center;                         /* ⚠️ Invalid value (ignored by browsers) */
 }
 
-
+/* ============================
+   Heading
+   ============================ */
 .register-form h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #fff;
+  text-align: center;   /* Centered heading */
+  margin-bottom: 20px;  /* Space below */
+  color: #fff;          /* White text for contrast */
   font-weight: bold;
 }
 
+/* ============================
+   Labels
+   ============================ */
 .register-form label {
   display: block;
   margin-top: 10px;
   margin-bottom: 5px;
-  color: #333;
+  color: #333;          /* Dark gray (low contrast on dark bg) */
 }
 
+/* ============================
+   Input Fields
+   ============================ */
 .register-form input {
-  width: 94%;
+  width: 94%;              /* Almost full width */
   padding: 10px;
-   margin: 2px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-family: inherit;
+  margin: 2px;             /* Small spacing between inputs */
+  border: 1px solid #ccc;  /* Light border */
+  border-radius: 6px;      /* Rounded inputs */
+  font-family: inherit;    /* Inherit main font */
 }
 
+/* ============================
+   Submit Button
+   ============================ */
 .register-form button {
-  width: 100%;
+  width: 100%;             /* Full width button */
   margin-top: 20px;
   padding: 10px;
-  background-color: #007bff;
+  background-color: #007bff; /* Primary blue */
   border: none;
   color: white;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s; /* Smooth hover transition */
 }
 
 .register-form button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue on hover */
 }
+
+/* ============================
+   Footer Text (e.g., link to login)
+   ============================ */
 .register-form p {
   text-align: center;
   margin-top: 20px;

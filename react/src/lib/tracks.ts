@@ -2,21 +2,28 @@
 import { api } from "./api";
 
 /** ===== Types ===== */
+
+/** Simple latitude/longitude tuple */
 export type LatLng = [number, number];
 
+/**
+ * Track entity as returned/used by the client.
+ * Note: `reviews` is currently typed as never[] here (matches your code).
+ */
 export interface Track {
-  reviews: never[];
-  _id: string;
-  name: string;
-  description?: string;
-  points: [number, number][];
-  owner?: string | { _id: string };
-  createdAt?: string;
-  updatedAt?: string;
+  reviews: never[];                 // reviews array placeholder (as in your code)
+  _id: string;                      // track id
+  name: string;                     // track name
+  description?: string;             // optional description
+  points: [number, number][];       // polyline points (lat, lng)
+  owner?: string | { _id: string }; // owner id or object with _id
+  createdAt?: string;               // ISO date
+  updatedAt?: string;               // ISO date
   /** Absolute URL returned by server (e.g., /api/tracks/:id/picture) */
-  image?: string;
+  image?: string;                   // absolute image URL (set only if server provides)
 }
 
+/** Payload for creating a track via JSON */
 export type CreateTrackJson = {
   name: string;
   description?: string;
@@ -25,15 +32,22 @@ export type CreateTrackJson = {
   image?: string;
 };
 
+/** Base path for tracks API */
 const TRACKS_BASE = "/api/tracks";
 
-/** Infer API origin from axios baseURL (e.g. http://localhost:4000) */
+/**
+ * Infer API origin from axios baseURL (e.g. http://localhost:4000)
+ * If baseURL is empty (using Vite dev proxy), API_ORIGIN becomes "".
+ */
 const API_ORIGIN =
   (typeof api?.defaults?.baseURL === "string"
     ? api.defaults.baseURL.replace(/\/$/, "")
     : "") || "";
 
-/** Ensure path becomes absolute URL against API_ORIGIN */
+/**
+ * Ensure path becomes absolute URL against API_ORIGIN.
+ * If already absolute (http/https), return as-is.
+ */
 function toAbsoluteUrl(pathOrUrl?: string): string | undefined {
   if (!pathOrUrl) return undefined;
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
@@ -49,25 +63,33 @@ function toAbsoluteUrl(pathOrUrl?: string): string | undefined {
 function normalizeTrack(t: any): Track {
   const out = { ...t } as Track;
   if (typeof t?.image === "string" && t.image.length > 0) {
-    out.image = toAbsoluteUrl(t.image);
+    out.image = toAbsoluteUrl(t.image); // convert to absolute URL when needed
   } else {
-    delete (out as any).image;
+    delete (out as any).image;          // ensure undefined if no image
   }
   return out;
 }
 
 /** ======================== Read ======================= */
+
+/** Fetch all tracks */
 export async function getTracks(): Promise<Track[]> {
   const { data } = await api.get(TRACKS_BASE);
   return (Array.isArray(data) ? data : []).map(normalizeTrack);
 }
 
+/** Fetch a single track by id */
 export async function getTrack(id: string): Promise<Track> {
   const { data } = await api.get(`${TRACKS_BASE}/${id}`);
   return normalizeTrack(data);
 }
 
 /** ======================== Create (JSON, Solution #2) ======================= */
+
+/**
+ * Create a new track (JSON payload).
+ * Accepts data URL for `image` (if provided).
+ */
 export async function createTrack(payload: CreateTrackJson): Promise<Track> {
   const { data } = await api.post(TRACKS_BASE, {
     name: payload.name,
@@ -79,6 +101,12 @@ export async function createTrack(payload: CreateTrackJson): Promise<Track> {
 }
 
 /** ======================== Update (JSON only) ======================= */
+
+/**
+ * Update an existing track.
+ * - `image`: provide a data URL string to replace picture
+ * - `imageClear`: set true to remove existing picture
+ */
 export async function updateTrack(
   id: string,
   payload: {
@@ -102,9 +130,12 @@ export async function updateTrack(
 }
 
 /** ======================== Delete ======================= */
+
+/**
+ * Delete a track by id.
+ * Server may return `{ ok: true }` or the deleted Track object.
+ */
 export async function deleteTrack(id: string): Promise<{ ok: true } | Track | unknown> {
   const { data } = await api.delete(`${TRACKS_BASE}/${id}`);
   return data && (data as any)._id ? normalizeTrack(data) : data;
 }
-
-// In the component file

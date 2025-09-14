@@ -4,17 +4,33 @@ import { useAuth } from "./AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import "../style/login.css";
 
+/**
+ * Login
+ *
+ * - Renders a login form with username + password fields.
+ * - Calls `loginWithCredentials` from AuthContext on submit.
+ * - Navigates to home ("/") if login succeeds.
+ * - Displays error messages from the server or a fallback message.
+ * - Provides links to register and forgot password flows.
+ */
 export default function Login() {
   const { loginWithCredentials } = useAuth();
   const navigate = useNavigate();
 
-  // local form state
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+  // ===== Local form state =====
+  const [username, setUsername] = useState(""); // controlled input
+  const [password, setPassword] = useState(""); // controlled input
+  const [msg, setMsg] = useState("");           // error/status message
+  const [loading, setLoading] = useState(false); // submit in-flight flag
 
-  // Handles the login form submission
+  /**
+   * Handle login form submission:
+   * - Prevent multiple submits when already loading
+   * - Clear message, set loading
+   * - Call loginWithCredentials
+   * - Navigate to "/" on success
+   * - Show error message on failure
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -25,7 +41,7 @@ export default function Login() {
       await loginWithCredentials(username, password);
       navigate("/");
     } catch (err: any) {
-      // Check for suspension message
+      // Use server-provided error if available
       const serverMsg = err?.response?.data?.error;
       if (serverMsg === "Your account is suspended.") {
         setMsg("Your account is suspended from this site.");
@@ -45,7 +61,7 @@ export default function Login() {
         {/* Displays error/info message */}
         {msg && <p className="error-message">{msg}</p>}
 
-        {/* Hook up the handler to the form */}
+        {/* Login form */}
         <form className="auth-card" onSubmit={handleSubmit}>
           {/* Controlled username input */}
           <input

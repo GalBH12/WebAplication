@@ -8,24 +8,39 @@ import ChatDrawer from "./ChatDrawer";
 import BackButton from "./BackButton";
 
 interface SidebarProps {
-  places?: LocationItem[];
-  onSelectLocation: (location: [number, number]) => void;
+  places?: LocationItem[];                         // saved places to choose from
+  onSelectLocation: (location: [number, number]) => void; // callback to center map
 }
 
+/**
+ * Sidebar
+ *
+ * - Collapsible app sidebar with:
+ *   • Auth shortcuts (login/register or hello/logout)
+ *   • Quick-jump to saved places (select → centers map)
+ *   • Navigation links (Home, Tracks, Change password, Admin)
+ *   • Profile drawer & Chat drawer launchers (for logged-in users)
+ *   • BackButton component for easy back navigation
+ */
 const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
+  // UI toggles for drawers and sidebar
   const [isChatOpen, setChatOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // Auth context (user + logout)
   const { user, logout } = useAuth();
 
+  // Toggle the sidebar open/closed
   const toggleSidebar = () => setIsOpen((s) => !s);
 
+  // Logout and close sidebar
   const handleLogout = () => {
     logout();
     setIsOpen(false);
   };
 
+  // When selecting a saved place, center the map and close sidebar
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     const found = places.find((p) => p.id === id);
@@ -35,6 +50,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
     }
   };
 
+  // Prefer full name → username → fallback "user"
   const displayName =
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
     user?.username ||
@@ -42,6 +58,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
 
   return (
     <>
+      {/* Floating launcher button (shown when sidebar is closed) */}
       {!isOpen && (
         <button
           className="sidebar-launcher"
@@ -57,7 +74,9 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
         </button>
       )}
 
+      {/* Sidebar container; toggles .open class */}
       <aside className={`sidebar ${isOpen ? "open" : ""}`} aria-label="Main sidebar">
+        {/* Top bar with brand and menu toggle */}
         <div className="top-bar">
           <button
             className={`menu-button ${isOpen ? "is-open" : ""}`}
@@ -78,6 +97,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
           </div>
         </div>
 
+        {/* Auth shortcuts / greeting + logout */}
         <div className="top-links">
           {!user ? (
             <>
@@ -100,6 +120,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
           )}
         </div>
 
+        {/* Quick jump to a saved place (select → centers the map) */}
         <section className="recent-places-section">
           <h4 className="section-title">Saved places</h4>
           <div className="field">
@@ -121,6 +142,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
           </div>
         </section>
 
+        {/* Main navigation */}
         <nav className="nav">
           <ul className="nav-list">
             <li>
@@ -148,6 +170,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
               </NavLink>
             </li>
 
+            {/* Additional items for authenticated users */}
             {user ? (
               <>
                 <li>
@@ -186,6 +209,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                   </NavLink>
                 </li>
 
+                {/* Admin-only link */}
                 {user?.role === "admin" && (
                   <li>
                     <NavLink
@@ -204,10 +228,13 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
           </ul>
         </nav>
 
+        {/* Back nav shortcut */}
         <BackButton />
+        {/* Profile drawer (modal-like) */}
         <ProfileDrawer open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
       </aside>
 
+      {/* Chat drawer is outside the sidebar so it can overlay the page */}
       <ChatDrawer open={isChatOpen} onClose={() => setChatOpen(false)} />
     </>
   );

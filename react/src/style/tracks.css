@@ -1,16 +1,20 @@
-/* ===== Base ===== */
+/* ============================
+   Base
+   ============================ */
 body {
     font-family: 'Assistant', sans-serif;
     margin: 0;
     padding: 0;
     direction: ltr;
-    background-color: #1f1f1f; /* dark background */
-    color: #fff;
+    background-color: #1f1f1f; /* Dark background */
+    color: #fff;              /* Default text color */
 }
 
-/* ===== Layout ===== */
+/* ============================
+   Layout
+   ============================ */
 .tracks-wrap { 
-    max-width: 980px;
+    max-width: 980px;   /* Content centered & constrained */
     margin: 24px auto;
     padding: 0 16px;
 }
@@ -25,7 +29,7 @@ body {
 
 .controls {
     display: flex;
-    gap: 8px;
+    gap: 8px; /* spacing between search/sort/refresh */
 }
 
 .search {
@@ -36,11 +40,14 @@ body {
     color: #fff;
 }
 
-/* ===== Cards ===== */
+/* ============================
+   Cards (track list)
+   ============================ */
 .cards {
     list-style: none;
     padding: 0;
     margin: 0;
+
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
@@ -51,6 +58,7 @@ body {
     border: 1px solid #333;
     border-radius: 12px;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+
     display: flex;
     flex-direction: column;
 }
@@ -85,6 +93,9 @@ body {
     font-size: .95rem;
 }
 
+/* ============================
+   Card Actions (buttons)
+   ============================ */
 .actions {
     display: flex;
     gap: 8px;
@@ -97,7 +108,7 @@ body {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    background: #007bff;
+    background: #007bff;  /* primary blue */
     color: #fff;
     font-weight: bold;
     transition: background-color 0.3s;
@@ -108,20 +119,23 @@ body {
 }
 
 .actions .danger {
-    background: #d9534f;
+    background: #d9534f;  /* red */
 }
 
 .actions .danger:hover {
     background: #c9302c;
 }
 
+/* Empty state */
 .empty {
     color: #aaa;
     text-align: center;
     padding: 20px;
 }
 
-/* ===== Modal ===== */
+/* ============================
+   Modal (edit track, etc.)
+   ============================ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -142,7 +156,9 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.45);
 }
 
-/* ===== Tabs ===== */
+/* ============================
+   Tabs (inside modal)
+   ============================ */
 .tabs {
   display: flex;
   gap: 6px;
@@ -161,9 +177,7 @@ body {
   transition: 0.2s;
 }
 
-.tab:hover {
-  background: #2a2a2a;
-}
+.tab:hover { background: #2a2a2a; }
 
 .tab--active {
   background: #007bff;
@@ -176,7 +190,9 @@ body {
   gap: 12px;
 }
 
-/* ===== Form ===== */
+/* ============================
+   Form Fields
+   ============================ */
 .form-grid {
   display: grid;
   gap: 14px;
@@ -202,11 +218,11 @@ input[type="file"] {
   color: #000000;
 }
 
-textarea {
-  resize: vertical;
-}
+textarea { resize: vertical; }
 
-/* ===== Image Preview ===== */
+/* ============================
+   Image Preview
+   ============================ */
 .image-preview {
   display: grid;
   gap: 8px;
@@ -220,8 +236,9 @@ textarea {
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-
-/* ===== Modal Actions ===== */
+/* ============================
+   Modal Actions (save/cancel)
+   ============================ */
 .modal-actions {
   display: flex;
   gap: 8px;
@@ -239,9 +256,7 @@ textarea {
   color: #fff;
 }
 
-.btn:hover {
-  background: #2a2a2a;
-}
+.btn:hover { background: #2a2a2a; }
 
 .btn.primary {
   background: #007bff;
@@ -249,16 +264,16 @@ textarea {
   border-color: #007bff;
 }
 
-.btn.primary:hover {
-  background: #0056b3;
-}
+.btn.primary:hover { background: #0056b3; }
 
 .btn.secondary {
   background: transparent;
   color: #aaa;
 }
 
-/* ===== Helpers ===== */
+/* ============================
+   Helpers
+   ============================ */
 .hint {
   color: #888;
   font-size: 13px;
@@ -271,6 +286,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Track image inside cards */
 .track-image {
   max-width: 290px;
   border-radius: 8px;

@@ -1,31 +1,45 @@
+/* ============================
+   Global styles
+   ============================ */
 body {
-  font-family: 'Assistant', sans-serif;
+  font-family: 'Assistant', sans-serif; /* Clean, modern font */
   margin: 0;
   padding: 0;
-  direction: ltr;
-  
+  direction: ltr;                       /* Left-to-right layout */
 }
 
+/* ============================
+   Login Container (page wrapper)
+   ============================ */
 .login-container {
+  /* Center the form horizontally & vertically */
   display: flex;
-  justify-content: center; /* מרכז אופקית */
-  align-items: center;     /* מרכז אנכית */
+  justify-content: center;
+  align-items: center;
+
   height: 100vh;
   width: 100vw;
-  background-color: #1f1f1f; /* כהה ונעים לעין */
+
+  /* Dark background for comfortable contrast */
+  background-color: #1f1f1f;
 }
 
+/* ============================
+   Login Card / Form
+   ============================ */
 .login-form {
-  background-color: #0f0b2f;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-  width: 335px;
-  direction: center;
-  text-align: right;
+  background-color: #0f0b2f;                 /* Dark card background */
+  padding: 40px;                             /* Inner spacing */
+  border-radius: 16px;                       /* Rounded corners */
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);   /* Subtle glow */
+  width: 335px;                              /* Fixed width */
+  text-align: right;                         /* Align labels/inputs to the right */
+  direction: center;                         /* ⚠️ Invalid value, ignored by browsers */
 }
 
-
+/* ============================
+   Heading
+   ============================ */
 .login-form h2 {
   text-align: center;
   margin-bottom: 20px;
@@ -33,78 +47,100 @@ body {
   font-weight: bold;
 }
 
+/* ============================
+   Labels
+   ============================ */
 .login-form label {
   display: block;
   margin-top: 10px;
   margin-bottom: 5px;
-  color: #333;
+  color: #333; /* Contrast text for labels */
 }
 
+/* ============================
+   Inputs
+   ============================ */
 .login-form input {
-  width: 94%;
+  width: 94%;                /* Almost full width inside card */
   padding: 10px;
   margin: 2px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-family: inherit;
+  border: 1px solid #ccc;    /* Light border */
+  border-radius: 6px;        /* Rounded corners */
+  font-family: inherit;      /* Use same font as body */
 }
 
+/* ============================
+   Submit Button
+   ============================ */
 .login-form button {
-  width: 100%;
+  width: 100%;               /* Full width */
   margin-top: 20px;
   padding: 10px;
-  background-color: #007bff;
+  background-color: #007bff; /* Primary blue */
   border: none;
   color: white;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s; /* Smooth hover */
 }
 
 .login-form button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue on hover */
 }
 
+/* ============================
+   Error Message
+   ============================ */
 .error-message {
   color: rgb(255, 255, 255);
   text-align: center;
   margin-bottom: 10px;
 }
+
+/* ============================
+   Paragraph (links, notes)
+   ============================ */
 .login-form p {
   text-align: center;
   margin-top: 20px;
   color: #fff;
 }
 
-/* --- Fix layout overflow on login card --- */
+/* ============================
+   --- Responsive Fixes ---
+   Prevent overflow & improve small screen layout
+   ============================ */
 .login-container {
-  display: grid;
+  display: grid;             /* Grid centers better with place-items */
   place-items: center;
   min-height: 100vh;
-  padding: 16px;            /* רווח ממסכים קטנים */
+  padding: 16px;             /* Safe spacing for small screens */
   box-sizing: border-box;
 }
 
 .login-form {
-  width: min(92vw, 500px);  /* מוגבל למסכים קטנים */
+  width: min(92vw, 500px);   /* Limit width on small screens */
   box-sizing: border-box;
-  padding: 24px;
+  padding: 24px;             /* Slightly reduced padding */
   border-radius: 16px;
-  border: 1px solid #1f2937;
-  background: #0f172a;
+  border: 1px solid #1f2937; /* Subtle border */
+  background: #0f172a;       /* Darker, consistent background */
 }
 
+/* Ensure all children respect box-sizing */
 .login-form * {
   box-sizing: border-box;
 }
 
+/* Force inputs and button to never overflow */
 .login-form input,
 .login-form button {
   width: 100%;
   max-width: 100%;
 }
 
+/* Adjust heading spacing for consistency */
 .login-form h2 {
   margin: 0 0 12px 0;
 }

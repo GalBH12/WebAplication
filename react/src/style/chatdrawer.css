@@ -1,47 +1,68 @@
+/* ============================
+   Overlay (dark blurred backdrop)
+   ============================ */
 .chatdrawer-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(2, 6, 23, .35);
-  backdrop-filter: blur(2px);
-  z-index: 50000;
+  inset: 0; /* top, right, bottom, left = 0 */
+  background: rgba(2, 6, 23, .35); /* semi-transparent dark */
+  backdrop-filter: blur(2px);      /* soft blur effect */
+  z-index: 50000;                  /* behind the panel */
 }
 
+/* ============================
+   Drawer Panel (main chat panel)
+   ============================ */
 .chatdrawer-panel {
   position: fixed;
   top: 0;
   bottom: 0;
-  right: 0;
+  right: 0;   /* slides in from right */
   left: auto;
   height: 100vh;
   width: 700px;
   max-width: 96vw;
+
+  /* Background glassy gradient */
   background: radial-gradient(120% 120% at 10% 0%, rgba(99, 102, 241, 0.18), rgba(2, 6, 23, 0.92) 60%);
   color: #e5e7eb;
+
+  /* Subtle border + shadow for separation */
   border-left: 1px solid rgba(148, 163, 184, 0.2);
   box-shadow:
     0 12px 28px rgba(0,0,0,.5),
     inset 0 0 0 1px rgba(255,255,255,.05);
-  z-index: 50001;
+
+  z-index: 50001;                  /* above overlay */
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr;    /* header + body */
   animation: chatdrawer-slide-in-right 220ms cubic-bezier(.2,.8,.2,1);
   box-sizing: border-box;
 }
 
+/* Explicit right-side placement */
 .chatdrawer-panel--right { right: 0; }
 
+/* Slide-in animation */
 @keyframes chatdrawer-slide-in-right {
   from { transform: translateX(16px); opacity: .6; }
   to   { transform: translateX(0);     opacity: 1;  }
 }
 
+/* ============================
+   Header
+   ============================ */
 .chatdrawer-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 12px 12px;
   border-bottom: 1px solid rgba(148, 163, 184, .16);
 }
+
+/* Close button */
 .chatdrawer-header .close {
-  inline-size: 36px; block-size: 36px;
+  inline-size: 36px;
+  block-size: 36px;
   border-radius: 999px;
   border: 1px solid rgba(148,163,184,.25);
   background: rgba(15,23,42,.6);
@@ -49,20 +70,35 @@
   cursor: pointer;
 }
 
+/* ============================
+   Body Layout (users + messages)
+   ============================ */
 .chatdrawer-body {
-  display: grid; grid-template-columns: 180px 1fr;
-  gap: 10px; padding: 12px;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: 180px 1fr; /* left user list + right messages */
+  gap: 10px;
+  padding: 12px;
+  min-height: 0; /* fix flexbox overflow */
   box-sizing: border-box;
 }
 
+/* ============================
+   Users List
+   ============================ */
 .users {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
 }
-.users-title { font-size: 12px; color: #94a3b8; letter-spacing: .08em; text-transform: uppercase; }
+
+.users-title {
+  font-size: 12px;
+  color: #94a3b8;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 .user {
   display: inline-block;
   max-width: 85%;
@@ -73,16 +109,29 @@
   color: #e5e7eb;
   cursor: pointer;
   text-align: left;
+
+  /* Handle long names */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Active/selected user highlight */
 .user.active {
   border-color: rgba(59,130,246,.5);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 
-.messages { display: grid; grid-template-rows: 1fr auto; min-height: 0; }
+/* ============================
+   Messages Column
+   ============================ */
+.messages {
+  display: grid;
+  grid-template-rows: 1fr auto; /* messages above, composer below */
+  min-height: 0;
+}
+
+/* Scrollable message stream */
 .stream {
   overflow: auto;
   padding: 6px 8px;
@@ -90,12 +139,18 @@
   flex-direction: column;
   gap: 10px;
 }
+
+/* Message wrapper */
 .msg {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
+
+/* Align "my" messages to the right */
 .msg.me { align-items: flex-end; }
+
+/* Chat bubble */
 .bubble {
   max-width: 72%;
   width: fit-content;
@@ -104,19 +159,37 @@
   color: #e5e7eb;
   border-radius: 12px;
   padding: 10px 12px;
+
+  /* Handle wrapping & long words */
   overflow-wrap: anywhere;
   word-break: break-word;
   white-space: pre-wrap;
 }
-.msg.me .bubble { background: rgba(59,130,246,.22); border-color: rgba(59,130,246,.4); }
 
-.meta { font-size: 12px; color: #94a3b8; }
+/* Special styling for my messages */
+.msg.me .bubble {
+  background: rgba(59,130,246,.22);
+  border-color: rgba(59,130,246,.4);
+}
 
+/* Meta info (timestamp, etc.) */
+.meta {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ============================
+   Composer (input + send button)
+   ============================ */
 .composer {
-  display: grid; grid-template-columns: 1fr auto; gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto; /* input + send button */
+  gap: 8px;
   padding: 8px 6px 10px;
   border-top: 1px solid rgba(148, 163, 184, .16);
 }
+
+/* Input field */
 .composer input {
   border: 1px solid rgba(148,163,184,.22);
   border-radius: 10px;
@@ -125,10 +198,14 @@
   padding: 10px 12px;
   outline: none;
 }
+
+/* Input focus highlight */
 .composer input:focus {
   border-color: rgba(59,130,246,.5);
   box-shadow: 0 0 0 2px rgba(59,130,246,.18);
 }
+
+/* Send button */
 .composer .send {
   min-width: 86px;
   border-radius: 10px;
@@ -139,6 +216,9 @@
   cursor: pointer;
 }
 
+/* ============================
+   Responsive tweaks
+   ============================ */
 @media (max-width: 820px) {
-  .bubble { max-width: 80%; }
+  .bubble { max-width: 80%; } /* wider bubbles on small screens */
 }

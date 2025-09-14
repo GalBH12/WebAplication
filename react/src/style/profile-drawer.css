@@ -1,58 +1,70 @@
-/* שכבת רקע שקופה */
+/* ============================
+   Overlay (transparent background behind drawer)
+   ============================ */
 .profile-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.28);
+  inset: 0;                          /* full screen */
+  background: rgba(0, 0, 0, 0.28);   /* semi-transparent black */
   display: flex;
-  justify-content: flex-end;
-  z-index: 1000;
+  justify-content: flex-end;         /* align drawer to right side */
+  z-index: 1000;                     /* above page content */
 }
 
-/* המגירה */
+/* ============================
+   Drawer Panel
+   ============================ */
 .profile-drawer {
   width: 380px;
-  max-width: 92vw;
-  height: 100%;
-  background: #fff;
-  color: #0f172a;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-  animation: slideIn 0.22s ease-out;
+  max-width: 92vw;                   /* responsive on small screens */
+  height: 100%;                      /* full height */
+  background: #fff;                  /* white background */
+  color: #0f172a;                    /* dark text */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); /* subtle depth */
+  animation: slideIn 0.22s ease-out; /* entrance animation */
   display: flex;
-  flex-direction: column;
-  border-left: 1px solid #e2e8f0;
+  flex-direction: column;            /* vertical stacking */
+  border-left: 1px solid #e2e8f0;    /* separator line */
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
     "Segoe UI Emoji";
 }
 
-/* כותרת עם אווטאר */
+/* ============================
+   Header (avatar + identity)
+   ============================ */
 .profile-header {
   display: flex;
-  gap: 14px;
+  gap: 14px;                         /* space between avatar and info */
   align-items: center;
   padding: 18px 18px 10px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;  /* light divider */
 }
+
+/* Avatar container */
 .avatar {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f1f5f9;
+  border-radius: 50%;                /* round shape */
+  overflow: hidden;                  /* crop overflow */
+  background: #f1f5f9;               /* fallback bg */
   display: grid;
-  place-items: center;
+  place-items: center;               /* center image or fallback */
 }
+
 .avatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;                 /* scale and crop nicely */
 }
+
+/* Fallback when no image */
 .avatar-fallback {
   font-weight: 700;
   font-size: 18px;
   color: #334155;
 }
 
+/* Identity text (name + email) */
 .identity .name {
   font-weight: 700;
   font-size: 18px;
@@ -62,53 +74,64 @@
   color: #64748b;
 }
 
-/* גוף הנתונים */
+/* ============================
+   Profile Data Section
+   ============================ */
 .profile-section {
   padding: 14px 18px;
   display: grid;
   gap: 10px;
 }
+
+/* Individual row */
 .profile-section .row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between;    /* label left, value right */
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #e2e8f0; /* dashed divider */
 }
 .profile-section .row span {
-  color: #475569;
+  color: #475569;                    /* muted label */
 }
 .profile-section .row b {
-  color: #0f172a;
+  color: #0f172a;                    /* strong value */
 }
 
-/* פוטר */
+/* ============================
+   Footer
+   ============================ */
 .profile-footer {
-  margin-top: auto;
+  margin-top: auto;                  /* stick to bottom */
   padding: 16px 18px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #f1f5f9;     /* light divider */
 }
+
+/* Logout button */
 .logout-btn {
   width: 100%;
   height: 42px;
   border-radius: 10px;
-  border: 1px solid #ef4444;
-  background: #fff;
-  color: #ef4444;
+  border: 1px solid #ef4444;         /* red border */
+  background: #fff;                  /* white background */
+  color: #ef4444;                    /* red text */
   font-weight: 700;
   cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.05s ease;
 }
 .logout-btn:hover {
-  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25); /* red glow */
 }
 .logout-btn:active {
-  transform: translateY(1px);
+  transform: translateY(1px);        /* slight press effect */
 }
 
+/* ============================
+   Animations
+   ============================ */
 @keyframes slideIn {
   from {
-    transform: translateX(12px);
+    transform: translateX(12px);     /* slide in from right */
     opacity: 0;
   }
   to {

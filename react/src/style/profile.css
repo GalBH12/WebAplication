@@ -1,19 +1,28 @@
+/* ============================
+   Maintenance Page Container
+   ============================ */
 .maintenance-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  text-align: center;
-  background-color: #f4f4f4;
-  color: #333;
+  flex-direction: column;   /* Stack children vertically */
+  align-items: center;      /* Center horizontally */
+  justify-content: center;  /* Center vertically */
+  height: 100vh;            /* Full viewport height */
+  text-align: center;       /* Center text inside */
+  background-color: #f4f4f4;/* Light gray background */
+  color: #333;              /* Dark text for contrast */
 }
 
+/* ============================
+   Heading
+   ============================ */
 .maintenance-container h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;        /* Large headline */
+  margin-bottom: 1rem;      /* Space below heading */
 }
 
+/* ============================
+   Paragraph Text
+   ============================ */
 .maintenance-container p {
-  font-size: 1.2rem;
+  font-size: 1.2rem;        /* Slightly larger than normal body text */
 }

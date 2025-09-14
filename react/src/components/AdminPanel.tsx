@@ -10,7 +10,7 @@ import type { User as AuthUser } from "../pages/AuthContext";
 type AdminUserRow = {
   _id: string;       // MongoDB user ID
   username: string;  // Username of the user
-  role: string;      // Role (e.g. "soldier", "commander", "admin")
+  role: string;      // Role (e.g. "member", "admin")
   banned: boolean;   // Whether the user is banned
 };
 

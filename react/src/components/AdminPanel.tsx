@@ -23,8 +23,6 @@ export default function AdminPanel({ user }: { user: { role: string } }) {
 
   const promote = (id: string) =>
     api.post(`/api/admin/users/${id}/promote`).then(() => reload());
-  const demote = (id: string) =>
-    api.post(`/api/admin/users/${id}/demote`).then(() => reload());
   const ban = (id: string) =>
     api.post(`/api/admin/users/${id}/ban`).then(() => reload());
     const unban = (id: string) =>
@@ -48,28 +46,27 @@ export default function AdminPanel({ user }: { user: { role: string } }) {
           </tr>
         </thead>
         <tbody>
-          {users.map(u => (
-            <tr key={u._id}>
-              <td>{u.username}</td>
-              <td>{u.role}</td>
-              <td>{u.banned ? "Yes" : "No"}</td>
-              <td>
-                {u.role !== "admin" && (
-                  <button onClick={() => promote(u._id)}>Promote to Admin</button>
-                )}
-                {u.role !== "member" && (
-                  <button onClick={() => demote(u._id)}>Demote to Member</button>
-                )}
-                {!u.banned && (
-                  <button onClick={() => ban(u._id)}>Ban</button>
-                )}
-                {u.banned && (
-                  <button onClick={() => unban(u._id)}>Unban</button>
-                )}
-                <button onClick={() => remove(u._id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {users
+            .filter(u => u.role !== "admin")
+            .map(u => (
+              <tr key={u._id}>
+                <td>{u.username}</td>
+                <td>{u.role}</td>
+                <td>{u.banned ? "Yes" : "No"}</td>
+                <td>
+                  {u.role !== "admin" && !u.banned && (
+                    <button onClick={() => promote(u._id)}>Promote to Admin</button>
+                  )}
+                  {!u.banned && (
+                    <button onClick={() => ban(u._id)}>Ban</button>
+                  )}
+                  {u.banned && (
+                    <button onClick={() => unban(u._id)}>Unban</button>
+                  )}
+                  <button onClick={() => remove(u._id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

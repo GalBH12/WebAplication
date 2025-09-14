@@ -14,11 +14,6 @@ router.post("/users/:id/promote", verifyToken, requireAdmin, async (req, res) =>
   res.json(user);
 });
 
-router.post("/users/:id/demote", verifyToken, requireAdmin, async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, { role: "member" }, { new: true });
-  res.json(user);
-});
-
 router.post("/users/:id/ban", verifyToken, requireAdmin, async (req, res) => {
   const user = await User.findByIdAndUpdate(req.params.id, { banned: true }, { new: true });
   res.json(user);

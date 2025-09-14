@@ -42,7 +42,7 @@ export default function Register() {
   // Submit handler: validates inputs, calls API, navigates on success
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // guard against double-clicks / rapid submits
+    if (loading) return;
 
     setMsg("");
     // Basic required fields validation
@@ -53,6 +53,11 @@ export default function Register() {
     // Password confirmation check
     if (form.password !== form.confirm) {
       setMsg("passwords do not match");
+      return;
+    }
+    // Phone number validation: must be exactly 10 digits
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      setMsg("phone number must be exactly 10 digits");
       return;
     }
 

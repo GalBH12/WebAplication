@@ -83,7 +83,7 @@ function signToken(user) {
     {
       id: user._id.toString(),
       username: user.username,
-      role: user.role || "user",
+      role: user.role || "member",
       banned: Boolean(user.banned),
     },
     JWT_SECRET,
@@ -131,7 +131,7 @@ app.post("/api/register", async (req, res) => {
       lastName: lastName ?? "",
       phone: phone ?? "",
       birthDate: birthDate ? new Date(birthDate) : null,
-      role: "user",
+      role: "member",
     });
 
     res.json({ success: true });
@@ -170,7 +170,7 @@ app.post("/api/login", async (req, res) => {
         username: user.username,
         email: user.email,
         profilePicture: user.profilePicture ?? null,
-        role: user.role || "user",
+        role: user.role || "member",
         banned: Boolean(user.banned),
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
@@ -202,7 +202,7 @@ app.get("/api/me", verifyToken, async (req, res) => {
         username: user.username,
         email: user.email,
         profilePicture: user.profilePicture ?? null,
-        role: user.role || "user",
+        role: user.role || "member",
         banned: Boolean(user.banned),
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
@@ -245,7 +245,7 @@ app.patch("/api/me", verifyToken, async (req, res) => {
         username: user.username,
         email: user.email,
         profilePicture: user.profilePicture ?? null,
-        role: user.role || "user",
+        role: user.role || "member",
         banned: Boolean(user.banned),
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",

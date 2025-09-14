@@ -1,0 +1,102 @@
+/* כפתור "חזרה" מעוגל – סגנון זכוכית עדין */
+.backbtn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+
+  /* מימדים וצורה */
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25); /* slate-300/25 */
+
+  /* רקע זכוכיתי */
+  background: radial-gradient(120% 120% at 20% 10%, rgba(99, 102, 241, 0.18), rgba(2, 6, 23, 0.75) 60%);
+  backdrop-filter: saturate(140%) blur(6px);
+
+  /* צל */
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  /* פריסה ואייקון */
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  /* טיפוגרפיה (למקרה של טקסט) */
+  color: #e5e7eb;
+
+  /* אנימציות */
+  transition:
+    transform 180ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms cubic-bezier(.2,.8,.2,1),
+    border-color 180ms,
+    background 180ms;
+}
+
+.backbtn-icon {
+  width: 20px;
+  height: 20px;
+  fill: #e5e7eb; /* text-slate-200 */
+  opacity: 0.92;
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1), opacity 180ms;
+}
+
+/* Hover – הרמה קלה והילה */
+.backbtn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(147, 197, 253, 0.35); /* blue-300/35 */
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.45),
+    0 0 0 3px rgba(59, 130, 246, 0.12); /* הילה עדינה */
+}
+
+.backbtn:hover .backbtn-icon {
+  opacity: 1;
+  transform: translateX(-1px);
+}
+
+/* Active – לחיצה */
+.backbtn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(59, 130, 246, 0.18);
+}
+
+/* Focus – נגישות */
+.backbtn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.45),
+    0 0 0 4px rgba(59, 130, 246, 0.35);
+}
+
+/* מסכים צרים – מרווח קל מהפינה */
+@media (max-width: 640px) {
+  .backbtn { top: 12px; left: 12px; }
+}
+
+/* במסכי Auth ממורכזים – הפינה לרוב פנויה */
+.auth-layout .backbtn {
+  top: 16px;
+  left: 16px;
+}
+
+/* תמיכה בהעדפת נגישות: להפחית אנימציות */
+@media (prefers-reduced-motion: reduce) {
+  .backbtn, .backbtn-icon {
+    transition: none !important;
+  }
+}
+
+/* מסייע לקוראי מסך – טקסט חבוי נגיש */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}

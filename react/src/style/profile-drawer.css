@@ -1,0 +1,118 @@
+/* שכבת רקע שקופה */
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+}
+
+/* המגירה */
+.profile-drawer {
+  width: 380px;
+  max-width: 92vw;
+  height: 100%;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  animation: slideIn 0.22s ease-out;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #e2e8f0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+/* כותרת עם אווטאר */
+.profile-header {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 18px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-fallback {
+  font-weight: 700;
+  font-size: 18px;
+  color: #334155;
+}
+
+.identity .name {
+  font-weight: 700;
+  font-size: 18px;
+}
+.identity .email {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* גוף הנתונים */
+.profile-section {
+  padding: 14px 18px;
+  display: grid;
+  gap: 10px;
+}
+.profile-section .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.profile-section .row span {
+  color: #475569;
+}
+.profile-section .row b {
+  color: #0f172a;
+}
+
+/* פוטר */
+.profile-footer {
+  margin-top: auto;
+  padding: 16px 18px;
+  border-top: 1px solid #f1f5f9;
+}
+.logout-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #ef4444;
+  background: #fff;
+  color: #ef4444;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.05s ease;
+}
+.logout-btn:hover {
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+}
+.logout-btn:active {
+  transform: translateY(1px);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

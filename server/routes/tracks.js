@@ -9,25 +9,8 @@ const mongoose = require("mongoose");    // For talking to the MongoDB database
 const router = express.Router();         // This lets us define our API endpoints
 
 // ====== SETUP THE TRACK MODEL (how a track looks in the database) ======
-let Track;
-try {
-  // Try to load the Track model from another file
-  const mod = require("../models/trackschema");
-  Track = mod.Track || mod;
-} catch {
-  // If that fails, define it right here
-  const TrackSchema = new mongoose.Schema(
-    {
-      name: { type: String, required: true }, // Track name (required)
-      description: String,                    // Track description (optional)
-      points: { type: [[Number]], default: [] }, // List of points (like GPS coordinates)
-      owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Who created it
-      image: { data: Buffer, contentType: String }, // The image (stored in the database)
-    },
-    { timestamps: true } // Automatically add createdAt and updatedAt fields
-  );
-  Track = mongoose.models.Track || mongoose.model("Track", TrackSchema);
-}
+const Track = require("../models/trackschema");
+
 
 // ====== SETUP FILE UPLOADS (for images) ======
 const upload = multer({
@@ -313,27 +296,26 @@ router.post("/:id/reviews", verifyToken, async (req, res) => {
   }
 });
 
-// Edit a review for a place/track
-router.put("/:trackId/reviews/:reviewIndex", async (req, res) => {
+// Edit a review (only by the author)
+router.put("/:id/reviews/:index", verifyToken, async (req, res) => {
   try {
-    const { trackId, reviewIndex } = req.params;
     const { text } = req.body;
-    const track = await Track.findById(trackId);
+    const { id, index } = req.params;
+    const track = await Track.findById(id);
     if (!track) return res.status(404).json({ error: "Track not found" });
 
-    // Check review exists
-    if (!track.reviews || !track.reviews[reviewIndex]) {
-      return res.status(404).json({ error: "Review not found" });
+    const review = track.reviews[index];
+    if (!review) return res.status(404).json({ error: "Review not found" });
+
+    if (review.user !== req.user.username) {
+      return res.status(403).json({ error: "You can only edit your own review" });
     }
 
-    // Optionally: check user is author or admin here
-
-    track.reviews[reviewIndex].text = text;
-    track.reviews[reviewIndex].editedAt = new Date();
+    review.text = text;
     await track.save();
-    res.json({ success: true, reviews: track.reviews });
+    res.json(review);
   } catch (e) {
-    res.status(500).json({ error: "server error" });
+    res.status(500).json({ error: "Failed to edit review" });
   }
 });
 

@@ -11,45 +11,40 @@ import { FaWaze } from "react-icons/fa";
 type SortBy = "name" | "created";
 
 export default function Tracks() {
-  // ===== Auth context =====
   const auth = useAuth();
   const user = auth?.user;
 
-  // ===== Server data: list of tracks from backend =====
+  // ===== Server data =====
   const [items, setItems] = useState<Track[]>([]);
 
-  // ===== UI state: loading/error flags =====
+  // ===== UI state =====
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ===== Search / sort state =====
+  // ===== Search / sort =====
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const navigate = useNavigate();
 
   // ===== Edit modal state =====
-  // editing: track being edited (null if modal closed)
-  // editName/editDesc: controlled fields for modal
   const [editing, setEditing] = useState<Track | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
 
-  // ===== Image editing state (JSON only) =====
-  // editImagePreview: what we show in UI (existing server URL or new data URL, or null if cleared)
-  // editImageDataUrl: only set when user selected a new file (data URL string)
-  // editImageClear: mark true if user chose to remove existing image
+  // Image editing state (JSON only)
+  // - editImagePreview: what we show in UI (existing server URL or new data URL, or null if cleared)
+  // - editImageDataUrl: only set when user selected a new file (data URL string)
+  // - editImageClear: mark true if user chose to remove existing image
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const [editImageDataUrl, setEditImageDataUrl] = useState<string | undefined>(undefined);
   const [editImageClear, setEditImageClear] = useState<boolean>(false);
 
-  // ===== Edit modal: saving state =====
   const [savingEdit, setSavingEdit] = useState(false);
   // ===== Load tracks =====
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch all tracks from backend
       const data = await getTracks();
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -61,13 +56,11 @@ export default function Tracks() {
   };
 
   useEffect(() => {
-  // Initial load of tracks on mount
-  load();
+    load();
   }, []);
 
   // ===== Derived list =====
   const filtered = useMemo(() => {
-    // ===== Filter and sort tracks for display =====
     const term = q.trim().toLowerCase();
     let list = !term
       ? items
@@ -91,7 +84,6 @@ export default function Tracks() {
 
   // ===== Delete =====
   const remove = async (id?: string) => {
-    // ===== Delete track by ID =====
     if (!id) return;
     if (!confirm("Delete this track?")) return;
     try {
@@ -105,24 +97,22 @@ export default function Tracks() {
 
   // ===== Open edit modal =====
   const openEdit = async (t: Track) => {
-  // ===== Open edit modal for a track =====
-  // Fetch the latest track data from the backend
-  const latest = await getTrack(t._id);
+    // Fetch the latest track data from the backend
+    const latest = await getTrack(t._id);
 
-  setEditing(latest);
-  setEditName(latest.name);
-  setEditDesc(latest.description || "");
+    setEditing(latest);
+    setEditName(latest.name);
+    setEditDesc(latest.description || "");
 
-  // Always use the latest image from the track (not stale state)
-  setEditImagePreview(typeof latest.image === "string" && latest.image.length > 0 ? latest.image : null);
-  setEditImageDataUrl(undefined);
-  setEditImageClear(false);
+    // Always use the latest image from the track (not stale state)
+    setEditImagePreview(typeof latest.image === "string" && latest.image.length > 0 ? latest.image : null);
+    setEditImageDataUrl(undefined);
+    setEditImageClear(false);
   };
 
   // ===== File input change (read file -> data URL) =====
   const onEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    // ===== File input change (read file -> data URL) =====
     if (!file) {
       // No new file picked: keep current preview (server image or null)
       setEditImageDataUrl(undefined);
@@ -141,15 +131,13 @@ export default function Tracks() {
 
   // ===== Clear image =====
   const clearEditImage = () => {
-  // ===== Clear image from edit modal =====
-  setEditImagePreview(null);   // hide in UI
-  setEditImageDataUrl(undefined);
-  setEditImageClear(true);     // mark to remove on save
+    setEditImagePreview(null);   // hide in UI
+    setEditImageDataUrl(undefined);
+    setEditImageClear(true);     // mark to remove on save
   };
 
   // ===== Save edit (JSON only) =====
   const saveEdit = async () => {
-    // ===== Save edit (JSON only) =====
     if (!editing?._id) return;
     if (!editName.trim()) {
       alert("Name is required");
@@ -162,7 +150,7 @@ export default function Tracks() {
 
     setSavingEdit(true);
     try {
-      // Build JSON payload for update
+      // Build JSON payload according to Solution #2
       const payload: {
         name?: string;
         description?: string;
@@ -194,8 +182,7 @@ export default function Tracks() {
   };
  console.log("Tracks component rendered with user:", items);
   return (
-  // ===== Main render: tracks list and edit modal =====
-  <div className="tracks-wrap">
+    <div className="tracks-wrap">
       <header className="tracks-header">
         <h1>Tracks</h1>
         <div className="controls">

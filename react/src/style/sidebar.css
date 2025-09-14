@@ -1,112 +1,227 @@
-.menu-button {
-  position: absolute;
-  top: 7px;
-  left: 252px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  width: auto;
-  height: auto;
-  font-size: 26px;
-  border: none;
-  cursor: pointer;
-  background-color: transparent !important;
-  padding: 0px;
-}
-
-.button {
-  width: 25px;
-  height: 2px;
-  background-color: #007bff !important;
-  margin: 3px;
-  transition: all 0.3s ease;
-  z-index: 1002;
-  
-}
-
+/* ====== SIDEBAR – Modern Glassy Look ====== */
 .sidebar {
   position: fixed;
-  top: 0;
-  left: -250px; /* מוסתר בהתחלה */
-  width: 250px;
+  inset: 0 auto 0 0;         /* top:0; left:0; bottom:0 */
+  width: 280px;
+  transform: translateX(-100%);
   height: 100%;
-  background-color: #1e1d1d;
-  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  transition: left 0.3s ease;
+  padding: 16px 16px 20px;
   z-index: 1000;
+
+  /* זכוכיתי מודרני */
+  background: radial-gradient(120% 120% at 10% 0%, rgba(59, 130, 246, 0.15), rgba(2, 6, 23, 0.8) 60%);
+  backdrop-filter: blur(8px) saturate(140%);
+  border-right: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  color: #e5e7eb;
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1);
   direction: ltr;
-}
 
-.sidebar.open {
-  left: 0;
+  /* מונע גלישה רוחבית של הילה/צל */
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
+.sidebar.open { transform: translateX(0); }
 
-.sidebar .close-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  float: left;
-  cursor: pointer;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 40px;
-}
-
-.sidebar li {
-  margin-bottom: 20px;
-}
-
-.sidebar a {
-  text-decoration: none;
-  color: #007bff;
-  font-weight: bold;
-}
-
-.recent-places-section {
-  color: #007bff;
-  font-weight: bold;
-  margin: 0;
-}
-
-.places-select {
-  display: flex;
-  margin-top: -15px;
-}
-
-.line {
-  color: #fff;
-  font-weight: bold;
-  margin: 0;
-  padding: 0;
-  display: inline;
-}
-
-.top-links {
+/* ====== Top Bar ====== */
+.top-bar {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 10px;
+  padding-block: 4px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  margin-bottom: 12px;
+}
+
+/* Hamburger (inside sidebar) */
+.menu-button {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  inline-size: 44px;
+  block-size: 44px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 180ms, box-shadow 180ms, border-color 180ms, background 180ms;
+}
+.menu-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(147, 197, 253, 0.32);
+  box-shadow: 0 12px 24px rgba(0,0,0,.35);
+}
+.menu-button .hamburger {
+  display: grid;
+  gap: 4px;
+}
+.hamburger__bar {
+  width: 20px;
+  height: 2px;
+  background: #e5e7eb;
+  opacity: .9;
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1), opacity 180ms;
+}
+.menu-button.is-open .hamburger__bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.menu-button.is-open .hamburger__bar:nth-child(2) { opacity: 0; }
+.menu-button.is-open .hamburger__bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Brand */
+.brand {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 600; letter-spacing: .02em; color: #cfd8e3;
+}
+.brand__dot {
+  width: 10px; height: 10px; border-radius: 999px;
+  background: radial-gradient(100% 100% at 50% 0%, #60a5fa, #2563eb);
+  box-shadow: 0 0 16px rgba(56, 189, 248, .55);
+}
+.brand__text { font-size: 15px; }
+
+/* ====== Top Links (login/register/logout) ====== */
+.top-links {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
   font-size: 13px;
-  margin-top: -5px;
-  margin-left: -6.5px;
+  margin: 10px 2px 14px;
 }
-
-.top-links a {
-  font-size: 14px;
-  margin: 0 4px;
+.top-link {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  color: #e5e7eb; text-decoration: none;
+  padding: 6px 10px; border-radius: 999px;
+  transition: border-color 180ms, background 180ms, transform 180ms;
+  cursor: pointer;
 }
+.top-link:hover { transform: translateY(-1px); border-color: rgba(147, 197, 253, .35); }
+.top-link--ghost { background: transparent; }
+.sep { opacity: .6; }
 
-.main-links {
-  display: flex;
-  flex-direction: column;
-  margin-top: -15px;
-}
-
+/* הדגשה + הגדלה ל-hello, <username> */
 .welcome-message {
-  color: #007bff;
-  font-weight: bold;
+  color: #dbeafe;          /* בהיר יותר לקריאות */
+  font-weight: 800;
+  font-size: 16px;
 }
+
+/* ====== Sections ====== */
+.section-title {
+  font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: #e2e8f0;           /* בהיר יותר מ-#94a3b8 */
+  font-weight: 800;
+  margin: 12px 2px 8px;
+}
+.recent-places-section { margin-top: 6px; }
+
+/* Field + Select */
+.field { margin: 6px 0 14px; }
+.places-select {
+  width: 100%;
+  background: #0b1220;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 180ms, box-shadow 180ms;
+  box-sizing: border-box;
+}
+.places-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, .18);
+}
+
+/* ====== Nav Buttons ====== */
+.nav { margin-top: 8px; }
+.nav-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+
+.nav-btn {
+  width: 100%;
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #e5e7eb;
+
+  background: rgba(17, 24, 39, .75);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 14px;
+
+  padding: 12px 14px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  cursor: pointer;
+
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+
+  transition:
+    transform 180ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms,
+    border-color 180ms,
+    background 180ms;
+}
+.nav-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(147, 197, 253, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 6px 16px rgba(0,0,0,.25);
+}
+.nav-btn:active { transform: translateY(0); }
+
+.nav-btn--primary {
+  background: linear-gradient(135deg, rgba(59, 130, 246, .28), rgba(2, 6, 23, .7));
+  border-color: rgba(59, 130, 246, .38);
+}
+.nav-btn--accent {
+  background: linear-gradient(135deg, rgba(34,197,94,.24), rgba(2,6,23,.7));
+  border-color: rgba(34,197,94,.38);
+}
+.nav-btn--ghost { background: transparent; }
+
+.nav-btn--active {
+  border-color: rgba(59, 130, 246, .55);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 0 0 2px rgba(59, 130, 246, .16);
+}
+
+/* ====== Responsive (מסכים קטנים) ====== */
+@media (max-width: 420px) {
+  .sidebar { width: 88vw; }
+}
+
+/* ====== Launcher (כפתור פתיחה מחוץ ל-Sidebar) ====== */
+.sidebar-launcher {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1100; /* מעל הסיידבר */
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  inline-size: 44px;
+  block-size: 44px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 180ms, box-shadow 180ms, border-color 180ms, background 180ms;
+}
+.sidebar-launcher:hover {
+  transform: translateY(-1px);
+  border-color: rgba(147, 197, 253, 0.32);
+  box-shadow: 0 12px 24px rgba(0,0,0,.35);
+}
+.sidebar-launcher .hamburger { display: grid; gap: 4px; }
+.sidebar-launcher .hamburger__bar {
+  width: 20px; height: 2px; background: #e5e7eb; opacity: .9;
+}
+
+/* ====== ניקוי קונפליקטים מהקובץ הישן ====== */
+.button { display: none; }
+.sidebar ul { list-style: none; padding: 0; margin: 0; }

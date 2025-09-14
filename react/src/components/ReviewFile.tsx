@@ -12,37 +12,7 @@ export function ReviewSection({
   user: any;
   setPlaces: React.Dispatch<React.SetStateAction<LocationItem[]>>;
 }) {
-  // ===== Editing state for reviews =====
-  const [editingReview, setEditingReview] = useState<{ reviewIndex: number; text: string } | null>(null);
-
-  // ===== Handle save of edited review =====
-  const handleSaveEdit = async () => {
-    if (!editingReview) return;
-    try {
-      // You need to implement updateReview in your backend/lib
-      await addReview(place.id, {
-        user: user.username,
-        text: editingReview.text
-      });
-      setPlaces(prev =>
-        prev.map(p =>
-          p.id === place.id
-            ? {
-                ...p,
-                reviews: (p.reviews ?? []).map((r, i) =>
-                  i === editingReview.reviewIndex
-                    ? { ...r, text: editingReview.text }
-                    : r
-                ),
-              }
-            : p
-        )
-      );
-      setEditingReview(null);
-    } catch {
-      alert("Failed to edit review.");
-    }
-  };
+  const [, setEditingReview] = useState<{ reviewIndex: number; text: string } | null>(null);
 
   return (
     <div className="reviews-section" style={{ marginTop: 8 }}>
@@ -51,7 +21,7 @@ export function ReviewSection({
         <ul
           className="reviews-list"
           style={{
-            maxHeight: "12em",
+            maxHeight: "12em", // Adjust as needed for 6 reviews
             overflowY: "auto",
             paddingRight: 8,
             margin: 0,
@@ -60,7 +30,6 @@ export function ReviewSection({
           {place.reviews.map((review, index) => {
             const isAuthor = user?.username === review.user;
             const isAdmin = user?.role === "admin";
-            const isEditing = editingReview?.reviewIndex === index;
 
             return (
               <li key={index} className="review-item" style={{ marginBottom: 8 }}>
@@ -69,7 +38,7 @@ export function ReviewSection({
                   <em style={{ marginLeft: 6, fontSize: 11, color: "#888" }}>
                     ({new Date(review.createdAt).toLocaleDateString()})
                   </em>
-                  {isAuthor && !isEditing && (
+                  {isAuthor && (
                     <button
                       onClick={e => {
                         e.stopPropagation();
@@ -128,26 +97,7 @@ export function ReviewSection({
                     </button>
                   )}
                 </div>
-                {isEditing ? (
-                  <div style={{ marginLeft: 16 }}>
-                    <textarea
-                      value={editingReview.text}
-                      onChange={e =>
-                        setEditingReview({ reviewIndex: index, text: e.target.value })
-                      }
-                      rows={2}
-                      style={{ width: "100%" }}
-                    />
-                    <button onClick={handleSaveEdit} style={{ marginRight: 8 }}>
-                      Save
-                    </button>
-                    <button onClick={() => setEditingReview(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <span style={{ display: "block", whiteSpace: "pre-line", marginLeft: 16 }}>{review.text}</span>
-                )}
+                <span style={{ display: "block", whiteSpace: "pre-line", marginLeft: 16 }}>{review.text}</span>
               </li>
             );
           })}

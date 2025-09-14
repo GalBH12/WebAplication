@@ -1,61 +1,124 @@
-import { useEffect, useState } from "react";
-import { api } from "../lib/api"; // your axios instance
+// react/src/components/AdminPanel.tsx
+import { useEffect, useState, useCallback } from "react";
+import { api } from "../lib/api";
+import type { User as AuthUser } from "../pages/AuthContext";
 
-type User = {
+type AdminUserRow = {
   _id: string;
   username: string;
   role: string;
   banned: boolean;
 };
 
-export default function AdminPanel({ user }: { user: { role: string } }) {
-  const [users, setUsers] = useState<User[]>([]);
+type Props = {
+  user: AuthUser | null; // מקבל את המשתמש מהקונטקסט
+};
+
+export default function AdminPanel({ user }: Props) {
+  const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  const isAdmin = user?.role === "admin";
+
+  const reload = useCallback(async () => {
+    try {
+      setErr(null);
+      const res = await api.get("/api/admin/users");
+      setUsers(res.data as AdminUserRow[]);
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Failed to load users");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (user?.role === "admin") {
-      api.get("/api/admin/users").then(res => {
-        setUsers(res.data);
-        setLoading(false);
-      });
+    if (!isAdmin) return;
+    setLoading(true);
+    reload();
+  }, [isAdmin, reload]);
+
+  const promote = async (id: string) => {
+    try {
+      await api.post(`/api/admin/users/${id}/promote`);
+      await reload();
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Promote failed");
     }
-  }, [user]);
+  };
 
-  const promote = (id: string) =>
-    api.post(`/api/admin/users/${id}/promote`).then(() => reload());
-  const ban = (id: string) =>
-    api.post(`/api/admin/users/${id}/ban`).then(() => reload());
-    const unban = (id: string) =>
-    api.post(`/api/admin/users/${id}/unban`).then(() => reload());
-  const remove = (id: string) =>
-    api.delete(`/api/admin/users/${id}`).then(() => reload());
+  const demote = async (id: string) => {
+    try {
+      await api.post(`/api/admin/users/${id}/demote`);
+      await reload();
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Demote failed"); // ✅ השתנה ל-||
+    }
+  };
 
-  const reload = () =>
-    api.get("/api/admin/users").then(res => setUsers(res.data));
+  const ban = async (id: string) => {
+    try {
+      await api.post(`/api/admin/users/${id}/ban`);
+      await reload();
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Ban failed");
+    }
+  };
 
-  if (user?.role !== "admin") return <div>Access denied</div>;
+  const unban = async (id: string) => {
+    try {
+      await api.post(`/api/admin/users/${id}/unban`);
+      await reload();
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Unban failed");
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/api/admin/users/${id}`);
+      await reload();
+    } catch (e: any) {
+      setErr(e?.response?.data?.error || "Delete failed");
+    }
+  };
+
+  if (!isAdmin) return <div>Access denied</div>;
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
       <h2>Admin Control Panel</h2>
-      <table>
+
+      {err && (
+        <div style={{ color: "crimson", marginBottom: 12 }}>
+          {err}
+        </div>
+      )}
+
+      <table style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
-            <th>Username</th><th>Role</th><th>Banned</th><th>Actions</th>
+            <th style={th}>Username</th>
+            <th style={th}>Role</th>
+            <th style={th}>Banned</th>
+            <th style={th}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {users
-            .filter(u => u.role !== "admin")
-            .map(u => (
-              <tr key={u._id}>
-                <td>{u.username}</td>
-                <td>{u.role}</td>
-                <td>{u.banned ? "Yes" : "No"}</td>
-                <td>
-                  {u.role !== "admin" && !u.banned && (
-                    <button onClick={() => promote(u._id)}>Promote to Admin</button>
+          {users.map((u) => (
+            <tr key={u._id}>
+              <td style={td}>{u.username}</td>
+              <td style={td}>{u.role}</td>
+              <td style={td}>{u.banned ? "Yes" : "No"}</td>
+              <td style={td}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {u.role !== "admin" && (
+                    <button onClick={() => promote(u._id)}>Promote</button>
+                  )}
+                  {u.role !== "member" && (
+                    <button onClick={() => demote(u._id)}>Demote</button>
                   )}
                   {!u.banned && (
                     <button onClick={() => ban(u._id)}>Ban</button>
@@ -64,11 +127,34 @@ export default function AdminPanel({ user }: { user: { role: string } }) {
                     <button onClick={() => unban(u._id)}>Unban</button>
                   )}
                   <button onClick={() => remove(u._id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+          {users.length === 0 && (
+            <tr>
+              <td style={td} colSpan={4}>
+                No users found.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
   );
 }
+
+/* inline styles קטנים לטבלה */
+const th: React.CSSProperties = {
+  textAlign: "left",
+  borderBottom: "1px solid #e5e7eb",
+  padding: "8px 6px",
+  fontWeight: 700,
+  color: "#111827",
+};
+
+const td: React.CSSProperties = {
+  borderBottom: "1px solid #f3f4f6",
+  padding: "8px 6px",
+  color: "#374151",
+};

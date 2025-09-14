@@ -3,6 +3,7 @@ import axios from "axios";
 
 // Use Vite env for API base. If you have a dev proxy for /api, keep this "".
 export const api = axios.create({
+  timeout: 10000,
   baseURL: import.meta.env.VITE_API_BASE || "",
 });
 

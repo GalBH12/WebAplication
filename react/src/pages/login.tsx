@@ -1,3 +1,4 @@
+import "../style/auth.css";
 import { useState } from "react";
 import { useAuth } from "./AuthContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -45,7 +46,7 @@ export default function Login() {
         {msg && <p className="error-message">{msg}</p>}
 
         {/* Hook up the handler to the form */}
-        <form onSubmit={handleSubmit}>
+        <form className="auth-card" onSubmit={handleSubmit}>
           {/* Controlled username input */}
           <input
             type="text"

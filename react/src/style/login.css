@@ -76,3 +76,35 @@ body {
   margin-top: 20px;
   color: #fff;
 }
+
+/* --- Fix layout overflow on login card --- */
+.login-container {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 16px;            /* רווח ממסכים קטנים */
+  box-sizing: border-box;
+}
+
+.login-form {
+  width: min(92vw, 500px);  /* מוגבל למסכים קטנים */
+  box-sizing: border-box;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid #1f2937;
+  background: #0f172a;
+}
+
+.login-form * {
+  box-sizing: border-box;
+}
+
+.login-form input,
+.login-form button {
+  width: 100%;
+  max-width: 100%;
+}
+
+.login-form h2 {
+  margin: 0 0 12px 0;
+}

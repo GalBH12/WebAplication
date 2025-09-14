@@ -99,23 +99,23 @@ export default function ProfileDrawer({ open, onClose }: Props) {
         {/* User details */}
         <section className="profile-section">
           <div className="row">
-            <span>שם פרטי:</span>
+            <span>First Name:</span>
             <b>{label(user?.firstName)}</b>
           </div>
           <div className="row">
-            <span>שם משפחה:</span>
+            <span>Last Name:</span>
             <b>{label(user?.lastName)}</b>
           </div>
           <div className="row">
-            <span>מייל:</span>
+            <span>Email:</span>
             <b>{label(user?.email)}</b>
           </div>
           <div className="row">
-            <span>טלפון:</span>
+            <span>Phone number:</span>
             <b>{label(user?.phone)}</b>
           </div>
           <div className="row">
-            <span>תאריך לידה:</span>
+            <span>Date of Birth:</span>
             <b>{formatDate(user?.birthDate ?? null)}</b>
           </div>
         </section>
@@ -129,7 +129,7 @@ export default function ProfileDrawer({ open, onClose }: Props) {
               onClose();
             }}
           >
-            התנתקות
+            disconnect
           </button>
         </footer>
       </aside>

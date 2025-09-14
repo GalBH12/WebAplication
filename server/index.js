@@ -61,7 +61,7 @@ mongoose
   .connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 })
   .then(() => {
     const host = (process.env.MONGO_URI || "").replace(/:\/\/[^@]+@/, "://***:***@");
-    console.log("[DB] Connected to", host || "local MongoDB");
+    console.log("[DB] Connected to DataBase");
   })
   .catch((err) => console.error("[DB] Connection error:", err?.message || err));
 

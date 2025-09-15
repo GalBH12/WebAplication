@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ReviewForm } from "./ReviewForm";
-import { addReview, deleteReview } from "../lib/reviews";
+import { addReview, deleteReview, editReview } from "../lib/reviews";
 import type { LocationItem } from "../types/location";
 
 /**
@@ -25,9 +25,8 @@ export function ReviewSection({
   user: any;                                          // current user info (username, role)
   setPlaces: React.Dispatch<React.SetStateAction<LocationItem[]>>; // setter to update places
 }) {
-  // Tracks which review is being edited (by index + text)
-  // Currently unused in this snippet, but ready for an edit feature
-  const [, setEditingReview] = useState<{ reviewIndex: number; text: string } | null>(null);
+  // 2. Add editingReview state
+  const [editingReview, setEditingReview] = useState<{ reviewIndex: number; text: string } | null>(null);
 
   return (
     <div className="reviews-section" style={{ marginTop: 8 }}>
@@ -124,12 +123,46 @@ export function ReviewSection({
                   )}
                 </div>
 
-                {/* Review text body */}
-                <span
-                  style={{ display: "block", whiteSpace: "pre-line", marginLeft: 16 }}
-                >
-                  {review.text}
-                </span>
+                {/* 3. Show edit form if editing */}
+                {editingReview && editingReview.reviewIndex === index ? (
+                  <form
+                    onSubmit={async e => {
+                      e.preventDefault();
+                      try {
+                        await editReview(place.id, index, editingReview.text);
+                        setPlaces(prev =>
+                          prev.map(LocationItem =>
+                            LocationItem.id === place.id
+                              ? {
+                                  ...LocationItem,
+                                  reviews: (LocationItem.reviews ?? []).map((r, i) =>
+                                    i === index ? { ...r, text: editingReview.text } : r
+                                  ),
+                                }
+                              : LocationItem
+                          )
+                        );
+                        setEditingReview(null);
+                      } catch {
+                        alert("Failed to edit review.");
+                      }
+                    }}
+                  >
+                    <input
+                      value={editingReview.text}
+                      onChange={e => setEditingReview({ ...editingReview, text: e.target.value })}
+                      style={{ width: "80%" }}
+                    />
+                    <button type="submit" style={{ marginLeft: 4 }}>Save</button>
+                    <button type="button" style={{ marginLeft: 4 }} onClick={() => setEditingReview(null)}>Cancel</button>
+                  </form>
+                ) : (
+                  <span
+                    style={{ display: "block", whiteSpace: "pre-line", marginLeft: 16 }}
+                  >
+                    {review.text}
+                  </span>
+                )}
               </li>
             );
           })}
@@ -156,12 +189,12 @@ export function ReviewSection({
 
             // Update local state with the new review
             setPlaces((prevPlaces) =>
-              prevPlaces.map((p) =>
-                p.id === place.id
+              prevPlaces.map((LocationItem) =>
+                LocationItem.id === place.id
                   ? {
-                      ...p,
+                      ...LocationItem,
                       reviews: [
-                        ...(p.reviews || []),
+                        ...(LocationItem.reviews || []),
                         {
                           ...newReview,
                           // Normalize date string to ISO format
@@ -169,7 +202,7 @@ export function ReviewSection({
                         }
                       ]
                     }
-                  : p
+                  : LocationItem
               )
             );
           }}

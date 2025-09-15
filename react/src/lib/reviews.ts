@@ -21,7 +21,7 @@ export async function addReview(trackId: string, review: { user: string; text: s
  * @returns server response (updated review list or status)
  */
 export async function editReview(trackId: string, reviewIndex: number, text: string) {
-  const res = await api.patch(`/api/tracks/${trackId}/reviews/${reviewIndex}`, { text });
+  const res = await api.put(`/api/tracks/${trackId}/reviews/${reviewIndex}`, { text });
   return res.data;
 }
 

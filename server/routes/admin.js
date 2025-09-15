@@ -30,13 +30,11 @@ router.post("/users/:id/promote", verifyToken, requireAdmin, async (req, res) =>
 /* ============================
    POST /admin/users/:id/demote
    Demote user → normal member
-   ⚠️ NOTE: in your schema, default role is "user"
-   You may want `{ role: "user" }` instead of `"member"`
    ============================ */
 router.post("/users/:id/demote", verifyToken, requireAdmin, async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.params.id,
-    { role: "member" }, // <-- probably should be "user"
+    { role: "member" },
     { new: true }
   );
   res.json(user);

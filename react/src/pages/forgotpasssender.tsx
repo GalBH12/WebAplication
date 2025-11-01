@@ -1,28 +1,17 @@
 import { useState } from "react";
-import "../style/login.css"; // reuse styles or create a dedicated one
+import "../style/login.css"; // reuse styles
+
 import { sendForgot } from "../lib/auth";
 
 /**
- * ForgotPassSender
- *
- * - Page for initiating a password reset.
- * - User enters their email, which is sent to the backend.
- * - If the email exists, the server sends a reset link.
- * - Displays status or error messages to the user.
+ * ForgotPassSender - עמוד בקשה לאיפוס סיסמה (עברית, RTL)
  */
 export default function ForgotPassSender() {
   // ===== Local state =====
-  const [email, setEmail] = useState("");   // input email
-  const [msg, setMsg] = useState("");       // status or error message
+  const [email, setEmail] = useState(""); // input email
+  const [msg, setMsg] = useState(""); // status or error message
   const [loading, setLoading] = useState(false); // submit in-progress flag
 
-  /**
-   * Handle form submission:
-   * - Prevent multiple submissions while loading
-   * - Clear message and set loading
-   * - Call API to send reset link
-   * - Show success or error message
-   */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -31,19 +20,18 @@ export default function ForgotPassSender() {
     setLoading(true);
     try {
       await sendForgot(email);
-      setMsg("reset link sent to your email");
+      setMsg("נשלח קישור לאיפוס הסיסמה למייל שלך");
     } catch (err: any) {
-      // Prefer server error if provided
-      setMsg(err?.response?.data?.error || "send failed");
+      setMsg(err?.response?.data?.error || "השליחה נכשלה");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       <div className="login-form">
-        <h2>Forgot Password</h2>
+        <h2>איפוס סיסמה</h2>
 
         {/* Status / error message */}
         {msg && <p className="error-message">{msg}</p>}
@@ -52,14 +40,15 @@ export default function ForgotPassSender() {
         <form onSubmit={submit}>
           <input
             type="email"
-            placeholder="your email"
+            placeholder="אימייל"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            dir="rtl"
           />
           <button type="submit" disabled={loading}>
-            {loading ? "Sending..." : "send reset link"}
+            {loading ? "שולח…" : "שלח קישור לאיפוס"}
           </button>
         </form>
       </div>

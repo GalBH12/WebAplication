@@ -118,22 +118,45 @@ const ChatDrawerContent: React.FC<ChatDrawerProps> = ({ open, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Chat panel"
+        dir="rtl"
       >
         {/* Header with title and close button */}
-        <div className="chatdrawer-header">
-          <strong>Chat</strong>
-          <button className="close" onClick={onClose} aria-label="Close">✕</button>
+        <div
+          className="chatdrawer-header"
+          style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 8px" }}
+        >
+          {/* Close button: same content, positioned at the left edge */}
+          <button
+            className="close"
+            onClick={onClose}
+            aria-label="סגור"
+            style={{
+              position: "absolute",
+              left: 8,
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 24,
+              lineHeight: 1,
+              padding: 6
+            }}
+          >
+            ✕
+          </button>
+          <strong style={{ flex: 1, textAlign: "center" }}>צ'אט</strong>
         </div>
 
         {/* Main body: users list + messages area */}
         <div className="chatdrawer-body">
           {/* Online users / recipient picker */}
           <aside className="users">
-            <div className="users-title">Online</div>
+            <div className="users-title">מחוברים</div>
 
             {/* General (broadcast to all) */}
             <button className={!to ? "user active" : "user"} onClick={() => setTo("")}>
-              General (all)
+              כללי (לכולם)
             </button>
 
             {/* List online users as private recipients */}
@@ -143,9 +166,9 @@ const ChatDrawerContent: React.FC<ChatDrawerProps> = ({ open, onClose }) => {
                 className={to === label ? "user active" : "user"}
                 onClick={() => setTo(label)}
                 disabled={label === selfLabel}             // can't DM yourself
-                title={label === selfLabel ? "You" : ""}   // small hint
+                title={label === selfLabel ? "אני" : ""}   // small hint (Hebrew)
               >
-                {label}{label === selfLabel ? " (me)" : ""}
+                {label}{label === selfLabel ? " (אני)" : ""}
               </button>
             ))}
           </aside>
@@ -156,7 +179,7 @@ const ChatDrawerContent: React.FC<ChatDrawerProps> = ({ open, onClose }) => {
             <div className="stream">
               {messages.map((m, i) => {
                 // choose display name for sender
-                const who = m.fromName || m.fromEmail || "unknown";
+                const who = m.fromName || m.fromEmail || "לא ידוע";
                 // basic "is this me?" heuristic for styling
                 const isMe = who === selfLabel || m.fromEmail === selfLabel;
 
@@ -177,13 +200,13 @@ const ChatDrawerContent: React.FC<ChatDrawerProps> = ({ open, onClose }) => {
             {/* Message composer */}
             <div className="composer">
               <input
-                placeholder={to ? "Private message..." : "Type a message..."}
+                placeholder={to ? "הודעה פרטית..." : "רשום הודעה..."}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => (e.key === "Enter" ? send() : undefined)} // quick send on Enter
               />
               <button onClick={send} className="send" disabled={!authed || !text.trim()}>
-                Send
+                שלח
               </button>
             </div>
           </main>

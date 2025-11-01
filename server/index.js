@@ -18,7 +18,7 @@ const { Server } = require("socket.io");
 /* ============================
    Config / Constants
    ============================ */
-const PORT = Number(process.env.PORT || 4000);
+const PORT = Number(process.env.port || 4000);
 
 // Allow loading local db config via ./db.js (optional)
 let DBJS_URI = undefined;

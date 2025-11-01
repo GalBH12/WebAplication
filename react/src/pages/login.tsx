@@ -23,14 +23,6 @@ export default function Login() {
   const [msg, setMsg] = useState("");           // error/status message
   const [loading, setLoading] = useState(false); // submit in-flight flag
 
-  /**
-   * Handle login form submission:
-   * - Prevent multiple submits when already loading
-   * - Clear message, set loading
-   * - Call loginWithCredentials
-   * - Navigate to "/" on success
-   * - Show error message on failure
-   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -41,12 +33,11 @@ export default function Login() {
       await loginWithCredentials(username, password);
       navigate("/");
     } catch (err: any) {
-      // Use server-provided error if available
       const serverMsg = err?.response?.data?.error;
       if (serverMsg === "Your account is suspended.") {
-        setMsg("Your account is suspended from this site.");
+        setMsg("החשבון שלך מושעה מהאתר.");
       } else {
-        setMsg(serverMsg || "Login failed");
+        setMsg(serverMsg || "התחברות נכשלה");
       }
     } finally {
       setLoading(false);
@@ -56,7 +47,7 @@ export default function Login() {
   return (
     <div className="login-container">
       <div className="login-form">
-        <h2>Login</h2>
+        <h2>התחברות</h2>
 
         {/* Displays error/info message */}
         {msg && <p className="error-message">{msg}</p>}
@@ -66,37 +57,34 @@ export default function Login() {
           {/* Controlled username input */}
           <input
             type="text"
-            placeholder="username"
+            placeholder="שם משתמש"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
             autoComplete="username"
+            dir="rtl"
           />
 
           {/* Controlled password input */}
           <input
             type="password"
-            placeholder="password"
+            placeholder="סיסמה"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
+            dir="rtl"
           />
 
           {/* Submit button reflects loading state */}
           <button type="submit" disabled={loading}>
-            {loading ? "Connecting..." : "connect"}
+            {loading ? "מתחבר…" : "התחבר"}
           </button>
         </form>
 
         {/* Helpful links */}
-        <p>
-          you don't have account <Link to="/register">register here</Link>
-        </p>
-        <p>
-          did you forget your password?{" "}
-          <Link to="/forgotpasssender">reset password</Link>
-        </p>
+        <p>אין לך חשבון? <Link to="/register">הרשם כאן</Link></p>
+        <p>שכחת סיסמה? <Link to="/forgotpasssender">איפוס סיסמה</Link></p>
       </div>
     </div>
   );

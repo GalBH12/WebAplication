@@ -9,7 +9,7 @@ import type { LocationItem } from "../types/location";
  * - Displays reviews for a given location/place.
  * - Allows:
  *   • Users to add a new review (via ReviewForm).
- *   • Authors to edit their own reviews (edit UI not yet wired in here).
+ *   • Authors to edit their own reviews (edit UI wired here).
  *   • Admins to delete any review.
  *
  * @param place     current place item (with reviews array)
@@ -25,12 +25,12 @@ export function ReviewSection({
   user: any;                                          // current user info (username, role)
   setPlaces: React.Dispatch<React.SetStateAction<LocationItem[]>>; // setter to update places
 }) {
-  // 2. Add editingReview state
+  // track currently editing review (index + draft text)
   const [editingReview, setEditingReview] = useState<{ reviewIndex: number; text: string } | null>(null);
 
   return (
-    <div className="reviews-section" style={{ marginTop: 8 }}>
-      <h6>Reviews:</h6>
+    <div className="reviews-section" style={{ marginTop: 8, direction: "rtl", textAlign: "right" }}>
+      <h6>תגובות:</h6>
 
       {/* If there are reviews, render them in a scrollable list */}
       {place.reviews && place.reviews.length > 0 ? (
@@ -50,80 +50,85 @@ export function ReviewSection({
 
             return (
               <li key={index} className="review-item" style={{ marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  {/* Reviewer name */}
-                  <strong>{review.user}</strong>:&nbsp;
-                  {/* Date of review */}
-                  <em style={{ marginLeft: 6, fontSize: 11, color: "#888" }}>
-                    ({new Date(review.createdAt).toLocaleDateString()})
-                  </em>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <div>
+                    {/* Reviewer name */}
+                    <strong>{review.user}</strong>
+                    &nbsp;
+                    {/* Date of review */}
+                    <em style={{ marginRight: 6, fontSize: 11, color: "#888" }}>
+                      ({new Date(review.createdAt).toLocaleDateString()})
+                    </em>
+                  </div>
 
-                  {/* Edit button (visible if current user is the author) */}
-                  {isAuthor && (
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        setEditingReview({ reviewIndex: index, text: review.text });
-                      }}
-                      style={{
-                        marginLeft: 8,
-                        fontSize: 14,
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "#555",
-                        padding: 0,
-                        lineHeight: 1,
-                        display: "flex",
-                        alignItems: "center"
-                      }}
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-                  )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {/* Edit button (visible if current user is the author) */}
+                    {isAuthor && (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setEditingReview({ reviewIndex: index, text: review.text });
+                        }}
+                        style={{
+                          marginRight: 8,
+                          fontSize: 14,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#555",
+                          padding: 0,
+                          lineHeight: 1,
+                          display: "flex",
+                          alignItems: "center"
+                        }}
+                        title="ערוך"
+                      >
+                        ✏️
+                      </button>
+                    )}
 
-                  {/* Delete button (visible if current user is an admin) */}
-                  {isAdmin && (
-                    <button
-                      onClick={async e => {
-                        e.stopPropagation();
-                        try {
-                          // Call API to delete the review
-                          await deleteReview(place.id, index);
-                          // Update local state to remove the review
-                          setPlaces(prev =>
-                            prev.map(p =>
-                              p.id === place.id
-                                ? {
-                                    ...p,
-                                    reviews: (p.reviews ?? []).filter((_, i) => i !== index),
-                                  }
-                                : p
-                            )
-                          );
-                        } catch {
-                          alert("Failed to delete review.");
-                        }
-                      }}
-                      style={{
-                        marginLeft: 8,
-                        fontSize: 12,
-                        color: "red",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 0,
-                        lineHeight: 1
-                      }}
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
-                  )}
+                    {/* Delete button (visible if current user is an admin) */}
+                    {isAdmin && (
+                      <button
+                        onClick={async e => {
+                          e.stopPropagation();
+                          try {
+                            // Call API to delete the review
+                            await deleteReview(place.id, index);
+                            // Update local state to remove the review
+                            setPlaces(prev =>
+                              prev.map(p =>
+                                p.id === place.id
+                                  ? {
+                                      ...p,
+                                      reviews: (p.reviews ?? []).filter((_, i) => i !== index),
+                                    }
+                                  : p
+                              )
+                            );
+                          } catch {
+                            alert("פעולה נכשלה. המחיקה נכשלה.");
+                          }
+                        }}
+                        style={{
+                          marginRight: 8,
+                          fontSize: 12,
+                          color: "red",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                          lineHeight: 1
+                        }}
+                        title="מחק"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* 3. Show edit form if editing */}
+                {/* Edit form when editing this review */}
                 {editingReview && editingReview.reviewIndex === index ? (
                   <form
                     onSubmit={async e => {
@@ -144,21 +149,22 @@ export function ReviewSection({
                         );
                         setEditingReview(null);
                       } catch {
-                        alert("Failed to edit review.");
+                        alert("פעולה נכשלה. עריכת התגובה נכשלה.");
                       }
                     }}
+                    style={{ marginTop: 8, display: "flex", gap: 8, justifyContent: "flex-start", direction: "rtl" }}
                   >
                     <input
                       value={editingReview.text}
                       onChange={e => setEditingReview({ ...editingReview, text: e.target.value })}
-                      style={{ width: "80%" }}
+                      style={{ width: "80%", textAlign: "right" }}
                     />
-                    <button type="submit" style={{ marginLeft: 4 }}>Save</button>
-                    <button type="button" style={{ marginLeft: 4 }} onClick={() => setEditingReview(null)}>Cancel</button>
+                    <button type="submit" style={{ marginRight: 4 }}>שמור</button>
+                    <button type="button" style={{ marginRight: 4 }} onClick={() => setEditingReview(null)}>ביטול</button>
                   </form>
                 ) : (
                   <span
-                    style={{ display: "block", whiteSpace: "pre-line", marginLeft: 16 }}
+                    style={{ display: "block", whiteSpace: "pre-line", marginRight: 16, marginTop: 6 }}
                   >
                     {review.text}
                   </span>
@@ -168,7 +174,7 @@ export function ReviewSection({
           })}
         </ul>
       ) : (
-        <div>No reviews yet.</div>
+        <div>אין תגובות עדיין.</div>
       )}
 
       {/* If user is logged in, show the form to add a new review */}
@@ -183,7 +189,7 @@ export function ReviewSection({
                 text: newReview.text,
               });
             } catch (err) {
-              alert("Failed to add review.");
+              alert("פעולה נכשלה. הוספת התגובה נכשלה.");
               return;
             }
 

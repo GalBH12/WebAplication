@@ -1,0 +1,99 @@
+/* Styles moved from Map.tsx: floating top-center mode box and toolbar controls */
+.floating-controls {
+  position: fixed;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  z-index: 99999;
+  width: 340px;
+  max-width: 92vw;
+  direction: rtl;
+  text-align: right;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 6px;
+  padding: 2px;
+  pointer-events: auto;
+}
+
+/* inner toolbar */
+.map-toolbar {
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  padding: 0;
+}
+
+/* header/title */
+.map-toolbar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 2px;
+  transform: translateX(-20px);
+}
+
+.map-toolbar__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.map-toolbar__badge {
+  font-size: 11px;
+  color: #ddd;
+  opacity: 0.9;
+}
+
+/* row of buttons */
+.map-toolbar__row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 2px 0;
+  margin: 0;
+}
+
+/* buttons */
+.map-btn {
+  padding: 3px 6px;
+  min-width: 56px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #0b84ff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.12) inset;
+}
+.map-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.map-btn--active {
+  background: linear-gradient(180deg,#0a77de,#0066cc);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+}
+
+/* small hint text */
+.map-toolbar__hint {
+  font-size: 11px;
+  opacity: 0.85;
+  padding-bottom: 6px;
+  color: #cfcfcf;
+  /* move the hint text the same amount as the header */
+  transform: translateX(-20px);
+}
+
+/* keep header + hint aligned on smaller screens */
+@media (max-width: 520px) {
+  .map-toolbar__header,
+  .map-toolbar__hint {
+    transform: translateX(-6px);
+  }
+}

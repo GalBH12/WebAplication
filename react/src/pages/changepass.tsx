@@ -34,7 +34,7 @@ const ChangePassword = () => {
       // Pull user (and username) from localStorage
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user.username) {
-        setMessage('the user is not logged in');
+        setMessage('המשתמש לא מחובר');
         return;
       }
 
@@ -42,41 +42,43 @@ const ChangePassword = () => {
       await changePassword(user.username, oldPassword, newPassword);
 
       // Success UI
-      setMessage('the password has been changed successfully');
+      setMessage('הסיסמה עודכנה בהצלחה');
       setOldPassword('');
       setNewPassword('');
     } catch (error: any) {
       // Show server-provided error if available
-      setMessage(error?.response?.data?.error || 'error changing password');
+      setMessage(error?.response?.data?.error || 'שגיאה בשינוי הסיסמה');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="change-password-container">
-      <h2>Changing Password</h2>
+    <div className="change-password-container" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
+      <h2>שינוי סיסמה</h2>
 
       {/* Form for old/new passwords */}
       <form onSubmit={handleChangePassword}>
         <input
           type="password"
-          placeholder="current password"
+          placeholder="סיסמה נוכחית"
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
           required
           autoComplete="current-password"
+          dir="rtl"
         />
         <input
           type="password"
-          placeholder="new password"
+          placeholder="סיסמה חדשה"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
           autoComplete="new-password"
+          dir="rtl"
         />
         <button type="submit" disabled={loading}>
-          {loading ? 'Updating...' : 'change password'}
+          {loading ? 'מעדכן…' : 'שנה סיסמה'}
         </button>
       </form>
 

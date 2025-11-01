@@ -41,12 +41,12 @@ export function ReviewForm({
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Write a review…"
+        placeholder="רשום תגובה חדשה..."
         style={{ width: "80%" }}
       />
       {/* Submit button */}
       <button type="submit" style={{ marginLeft: 4 }}>
-        Post
+        שלח
       </button>
     </form>
   );

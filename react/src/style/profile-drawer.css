@@ -4,29 +4,56 @@
 .profile-overlay {
   position: fixed;
   inset: 0;                          /* full screen */
-  background: rgba(0, 0, 0, 0.28);   /* semi-transparent black */
+  background: rgba(0, 0, 0, 0.35);   /* semi-transparent black */
   display: flex;
   justify-content: flex-end;         /* align drawer to right side */
-  z-index: 1000;                     /* above page content */
+  align-items: stretch;
+  z-index: 999999;                   /* on top of everything */
 }
 
 /* ============================
    Drawer Panel
    ============================ */
 .profile-drawer {
-  width: 380px;
+  width: 340px;
   max-width: 92vw;                   /* responsive on small screens */
   height: 100%;                      /* full height */
-  background: #fff;                  /* white background */
-  color: #0f172a;                    /* dark text */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); /* subtle depth */
-  animation: slideIn 0.22s ease-out; /* entrance animation */
-  display: flex;
-  flex-direction: column;            /* vertical stacking */
-  border-left: 1px solid #e2e8f0;    /* separator line */
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
-    "Segoe UI Emoji";
+  background: #0f0f11;                /* dark background */
+  color: #fff;                        /* white text */
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.6); /* subtle depth */
+  padding: 16px;
+  position: relative;
+  direction: rtl;
+  text-align: right;
+  overflow-y: auto;
+  z-index: 1000000;
+}
+
+/* Close button inside drawer on the left */
+.drawer-close {
+  position: absolute;
+  left: 10px;     /* inside drawer, left side */
+  top: 10px;
+
+  /* bigger button */
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 24px;       /* larger X */
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;    /* a bit larger radius */
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.drawer-close:hover {
+  background: rgba(255,255,255,0.06);
 }
 
 /* ============================
@@ -34,44 +61,44 @@
    ============================ */
 .profile-header {
   display: flex;
-  gap: 14px;                         /* space between avatar and info */
+  gap: 12px;                         /* space between avatar and info */
   align-items: center;
-  padding: 18px 18px 10px;
-  border-bottom: 1px solid #f1f5f9;  /* light divider */
+  margin-bottom: 8px;
 }
 
 /* Avatar container */
 .avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;                /* round shape */
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;                /* round shape */
   overflow: hidden;                  /* crop overflow */
-  background: #f1f5f9;               /* fallback bg */
-  display: grid;
-  place-items: center;               /* center image or fallback */
+  background: #222;                  /* fallback bg */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;                 /* scale and crop nicely */
+  display: block;
 }
 
 /* Fallback when no image */
 .avatar-fallback {
   font-weight: 700;
-  font-size: 18px;
-  color: #334155;
+  color: #fff;
+  font-size: 20px;
 }
 
 /* Identity text (name + email) */
 .identity .name {
   font-weight: 700;
-  font-size: 18px;
 }
 .identity .email {
   font-size: 13px;
-  color: #64748b;
+  opacity: 0.85;
 }
 
 /* ============================
@@ -88,43 +115,36 @@
   display: flex;
   justify-content: space-between;    /* label left, value right */
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px dashed #e2e8f0; /* dashed divider */
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03); /* dashed divider */
 }
 .profile-section .row span {
-  color: #475569;                    /* muted label */
+  color: #cfcfcf;                    /* muted label */
+  font-size: 13px;
 }
 .profile-section .row b {
-  color: #0f172a;                    /* strong value */
+  font-weight: 600;
 }
 
 /* ============================
    Footer
    ============================ */
 .profile-footer {
-  margin-top: auto;                  /* stick to bottom */
-  padding: 16px 18px;
-  border-top: 1px solid #f1f5f9;     /* light divider */
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
 }
 
 /* Logout button */
 .logout-btn {
-  width: 100%;
-  height: 42px;
-  border-radius: 10px;
-  border: 1px solid #ef4444;         /* red border */
-  background: #fff;                  /* white background */
-  color: #ef4444;                    /* red text */
-  font-weight: 700;
+  background: #d9534f;
+  color: #fff;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.05s ease;
 }
-.logout-btn:hover {
-  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25); /* red glow */
-}
-.logout-btn:active {
-  transform: translateY(1px);        /* slight press effect */
-}
+.logout-btn:hover { opacity: 0.95; }
 
 /* ============================
    Animations
@@ -138,4 +158,10 @@
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* Small screens tweak */
+@media (max-width: 480px) {
+  .profile-drawer { width: 92vw; padding: 12px; }
+  .drawer-close { left: 8px; top: 8px; }
 }

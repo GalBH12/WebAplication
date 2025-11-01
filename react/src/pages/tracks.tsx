@@ -54,7 +54,7 @@ export default function Tracks() {
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Failed to load tracks", e);
-      setError("Failed to load tracks");
+      setError("שגיאה בטעינת המסלולים");
     } finally {
       setLoading(false);
     }
@@ -94,13 +94,13 @@ export default function Tracks() {
   // Delete a track by id (owner/admin only)
   const remove = async (id?: string) => {
     if (!id) return;
-    if (!confirm("Delete this track?")) return;
+    if (!confirm("להסיר מסלול זה?")) return;
     try {
       await deleteTrack(id);
       setItems((prev) => prev.filter((x) => x._id !== id));
     } catch (err) {
       console.error(err);
-      alert("Failed to delete track (are you the owner and logged in?).");
+      alert("המחיקה נכשלה (האם אתה הבעלים ומחובר?).");
     }
   };
 
@@ -153,11 +153,11 @@ export default function Tracks() {
   const saveEdit = async () => {
     if (!editing?._id) return;
     if (!editName.trim()) {
-      alert("Name is required");
+      alert("השם דרוש");
       return;
     }
     if (!localStorage.getItem("token")) {
-      alert("Please login first.");
+      alert("אנא התחבר קודם.");
       return;
     }
 
@@ -189,7 +189,7 @@ export default function Tracks() {
       setEditing(null); // close modal
     } catch (e) {
       console.error("Failed to update track", e);
-      alert("Failed to update track (are you the owner and logged in?).");
+      alert("עדכון המסלול נכשל (האם אתה הבעלים ומחובר?).");
     } finally {
       setSavingEdit(false);
     }
@@ -199,34 +199,34 @@ export default function Tracks() {
   console.log("Tracks component rendered with user:", items);
 
   return (
-    <div className="tracks-wrap">
+    <div className="tracks-wrap" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       {/* Header: title + controls (search/sort/refresh) */}
       <header className="tracks-header">
-        <h1>Tracks</h1>
+        <h1>מסלולים</h1>
         <div className="controls">
           <input
             className="search"
-            placeholder="Search by name or note…"
+            placeholder="חפש לפי שם או תיאור…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-            <option value="name">Sort: Name</option>
-            <option value="created">Sort: Created</option>
+            <option value="name">מיין: שם</option>
+            <option value="created">מיין: תאריך יצירה</option>
           </select>
           <button onClick={load} disabled={loading}>
-            {loading ? "Loading…" : "Refresh"}
+            {loading ? "טוען…" : "רענן"}
           </button>
         </div>
       </header>
 
       {/* Top-level feedback states */}
-      {loading && <p className="info">Loading tracks…</p>}
+      {loading && <p className="info">טוען מסלולים…</p>}
       {error && <p className="error">{error}</p>}
 
       {/* Empty state when no items after filtering */}
       {!loading && filtered.length === 0 ? (
-        <p className="empty">No tracks yet. Add some from the map ✨</p>
+        <p className="empty">אין מסלולים כרגע. הוסף כמה מהמפה ✨</p>
       ) : (
         // Cards list of tracks
         <ul className="cards">
@@ -273,18 +273,23 @@ export default function Tracks() {
                     <>
                       <button
                         onClick={() => {
-                          // Navigate to map page and center on track's first point
-                          navigate("/", { state: { center: [...p.points[0]] } });
+                          // Navigate to map page, center and request popup open by track id
+                          navigate("/", {
+                            state: {
+                              center: [...p.points[0]],
+                              openId: p._id,
+                            },
+                          });
                         }}
                       >
-                        Go on map
+                        פתח במפה
                       </button>
                       <a
                         href={`https://waze.com/ul?ll=${p.points[0][0]},${p.points[0][1]}&navigate=yes`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Navigate with Waze"
-                        style={{ marginLeft: "8px", verticalAlign: "middle" }}
+                        title="ניווט עם Waze"
+                        style={{ marginRight: "8px", verticalAlign: "middle" }}
                       >
                         <FaWaze size={24} color="#33CCFF" />
                       </a>
@@ -294,23 +299,23 @@ export default function Tracks() {
                     onClick={() => openEdit(p)}
                     disabled={!canEditOrDelete}
                     className={!canEditOrDelete ? "disabled" : ""}
-                    title={!user ? "Log in to edit" : !canEditOrDelete ? "Only owner or admin can edit" : ""}
+                    title={!user ? "להתחבר כדי לערוך" : !canEditOrDelete ? "רק הבעלים או מנהל יכולים לערוך" : ""}
                   >
-                    Edit
+                    ערוך
                   </button>
                   <button
                     className={`danger${!canEditOrDelete ? " disabled" : ""}`}
                     onClick={() => remove(p._id)}
                     disabled={!canEditOrDelete}
-                    title={!user ? "Log in to delete" : !canEditOrDelete ? "Only owner or admin can delete" : ""}
+                    title={!user ? "להתחבר כדי למחוק" : !canEditOrDelete ? "רק הבעלים או מנהל יכולים למחוק" : ""}
                   >
-                    Delete
+                    מחק
                   </button>
                 </div>
                 {/* Badge when the viewer lacks permissions */}
                 {!canEditOrDelete && (
-                  <span className="map-toolbar__badge" title="Log in to enable edit/delete">
-                    login/admin perms required for edit/delete
+                  <span className="map-toolbar__badge" title="להתחבר כדי לאפשר עריכה/מחיקה">
+                    נדרשת הרשאת בעלים/מנהל לעריכה/מחיקה
                   </span>
                 )}
               </li>
@@ -322,27 +327,27 @@ export default function Tracks() {
       {/* Edit modal (name, description, image) */}
       {editing && (
         <div className="modal-backdrop">
-          <div className="modal">
-            <h3>Edit track</h3>
+          <div className="modal" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
+            <h3>עריכת מסלול</h3>
             <label className="field">
-              <span>Name</span>
+              <span>שם</span>
               <textarea
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="Track name"
+                placeholder="שם המסלול"
               />
             </label>
             <label className="field">
-              <span>Description</span>
+              <span>תיאור</span>
               <textarea
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
                 rows={3}
-                placeholder="Optional description"
+                placeholder="תיאור אופציונלי"
               />
             </label>
             <label className="field">
-              <span>Image</span>
+              <span>תמונה</span>
               <input
                 type="file"
                 accept="image/*"
@@ -368,7 +373,7 @@ export default function Tracks() {
                   />
                   <div>
                     <button type="button" className="secondary" onClick={clearEditImage}>
-                      Remove image
+                      הסר תמונה
                     </button>
                   </div>
                 </div>
@@ -376,7 +381,7 @@ export default function Tracks() {
             </label>
             <div className="modal-actions">
               <button disabled={savingEdit} onClick={saveEdit}>
-                {savingEdit ? "Saving…" : "Save"}
+                {savingEdit ? "שומר…" : "שמור"}
               </button>
               <button
                 className="secondary"
@@ -389,7 +394,7 @@ export default function Tracks() {
                   setEditImageClear(false);
                 }}
               >
-                Cancel
+                ביטול
               </button>
             </div>
           </div>

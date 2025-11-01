@@ -36,20 +36,20 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       await resetWithToken(id, token, password);
-      setMsg("password updated");
+      setMsg("הסיסמה עודכנה בהצלחה");
       navigate("/login");
     } catch (err: any) {
       // Show server error if available
-      setMsg(err?.response?.data?.error || "reset failed");
+      setMsg(err?.response?.data?.error || "איפוס הסיסמה נכשל");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       <div className="login-form">
-        <h2>Reset Password</h2>
+        <h2>איפוס סיסמה</h2>
 
         {/* Error / status message */}
         {msg && <p className="error-message">{msg}</p>}
@@ -58,14 +58,15 @@ export default function ResetPassword() {
         <form onSubmit={handleSubmit}>
           <input
             type="password"
-            placeholder="new password"
+            placeholder="סיסמה חדשה"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="new-password"
+            dir="rtl"
           />
           <button type="submit" disabled={loading}>
-            {loading ? "Updating..." : "update password"}
+            {loading ? "מעדכן…" : "עדכן סיסמה"}
           </button>
         </form>
       </div>

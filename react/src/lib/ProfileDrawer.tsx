@@ -69,11 +69,16 @@ export default function ProfileDrawer({ open, onClose }: Props) {
     <div className="profile-overlay" onClick={onClose}>
       <aside
         className="profile-drawer"
+        dir="rtl"
         onClick={(e) => e.stopPropagation()} // prevent overlay close
         role="dialog"
         aria-modal="true"
-        aria-label="Profile"
+        aria-label="פרופיל"
       >
+        {/* Close button on the LEFT inside the drawer */}
+        <button className="drawer-close" onClick={onClose} aria-label="סגור">
+          ×
+        </button>
         {/* Header with avatar + identity */}
         <header className="profile-header">
           <div className="avatar">
@@ -95,46 +100,46 @@ export default function ProfileDrawer({ open, onClose }: Props) {
             <div className="email">{label(user?.email)}</div>
           </div>
         </header>
-
+ 
         {/* User details */}
         <section className="profile-section">
           <div className="row">
-            <span>First Name:</span>
-            <b>{label(user?.firstName)}</b>
-          </div>
-          <div className="row">
-            <span>Last Name:</span>
-            <b>{label(user?.lastName)}</b>
-          </div>
-          <div className="row">
-            <span>Email:</span>
-            <b>{label(user?.email)}</b>
-          </div>
-          <div className="row">
-            <span>Phone number:</span>
-            <b>{label(user?.phone)}</b>
-          </div>
-          <div className="row">
-            <span>Date of Birth:</span>
-            <b>{formatDate(user?.birthDate ?? null)}</b>
-          </div>
-        </section>
-
-        {/* Footer with logout */}
-        <footer className="profile-footer">
-          <button
-            className="logout-btn"
-            onClick={() => {
-              logout();
-              onClose();
-            }}
-          >
-            disconnect
-          </button>
-        </footer>
-      </aside>
-    </div>
-  );
+            <span>שם פרטי:</span>
+             <b>{label(user?.firstName)}</b>
+           </div>
+           <div className="row">
+            <span>שם משפחה:</span>
+             <b>{label(user?.lastName)}</b>
+           </div>
+           <div className="row">
+            <span>אימייל:</span>
+             <b>{label(user?.email)}</b>
+           </div>
+           <div className="row">
+            <span>טלפון:</span>
+             <b>{label(user?.phone)}</b>
+           </div>
+           <div className="row">
+            <span>תאריך לידה:</span>
+             <b>{formatDate(user?.birthDate ?? null)}</b>
+           </div>
+         </section>
+ 
+         {/* Footer with logout */}
+         <footer className="profile-footer">
+           <button
+             className="logout-btn"
+             onClick={() => {
+               logout();
+               onClose();
+             }}
+           >
+            התנתק
+           </button>
+         </footer>
+       </aside>
+     </div>
+   );
 
   // Render into document.body via React portal
   return createPortal(body, document.body);

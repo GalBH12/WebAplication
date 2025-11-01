@@ -123,15 +123,16 @@ export default function AdminPanel({ user }: Props) {
   // ===== Conditional rendering =====
 
   // If current user is not admin, deny access
-  if (!isAdmin) return <div>Access denied</div>;
+  if (!isAdmin) return <div>הגישה נדחתה</div>;
 
   // Show loading state
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>טוען...</div>;
 
   // ===== Render UI =====
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Admin Control Panel</h2>
+    // add direction: "rtl" here to enable RTL layout
+    <div style={{ padding: 16, direction: "rtl" }}>
+      <h2>לוח בקרה של מנהל</h2>
 
       {/* Show error messages in red */}
       {err && (
@@ -141,13 +142,15 @@ export default function AdminPanel({ user }: Props) {
       )}
 
       {/* Users table */}
-      <table style={{ borderCollapse: "collapse", width: "100%" }}>
+      {/* use fixed table layout and reserve a small width for actions column */}
+      <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
         <thead>
           <tr>
-            <th style={th}>Username</th>
-            <th style={th}>Role</th>
-            <th style={th}>Banned</th>
-            <th style={th}>Actions</th>
+            <th style={th}>שם משתמש</th>
+            <th style={th}>תפקיד</th>
+            <th style={th}>מושעה</th>
+            {/* make actions column narrow and center header */}
+            <th style={{ ...th, width: 180, textAlign: "center" }}>פעולות</th>
           </tr>
         </thead>
         <tbody>
@@ -158,22 +161,25 @@ export default function AdminPanel({ user }: Props) {
               <tr key={u._id}>
                 <td style={td}>{u.username}</td>
                 <td style={td}>{u.role}</td>
-                <td style={td}>{u.banned ? "Yes" : "No"}</td>
-                <td>
-                  {/* Promote option (only if not admin & not banned) */}
-                  {u.role !== "admin" && !u.banned && (
-                    <button onClick={() => promote(u._id)}>Promote to Admin</button>
-                  )}
-                  {/* Ban option */}
-                  {!u.banned && (
-                    <button onClick={() => ban(u._id)}>Ban</button>
-                  )}
-                  {/* Unban option */}
-                  {u.banned && (
-                    <button onClick={() => unban(u._id)}>Unban</button>
-                  )}
-                  {/* Delete option */}
-                  <button onClick={() => remove(u._id)}>Delete</button>
+                <td style={td}>{u.banned ? "כן" : "לא"}</td>
+                {/* center action buttons under the פעולות header and keep RTL order */}
+                <td style={{ ...td, textAlign: "center", width: 180 }}>
+                  <div style={{ display: "inline-flex", gap: 8, flexDirection: "row-reverse", direction: "rtl", alignItems: "center", justifyContent: "center" }}>
+                    {/* Promote option (only if not admin & not banned) */}
+                    {u.role !== "admin" && !u.banned && (
+                      <button onClick={() => promote(u._id)}>קדם למנהל</button>
+                    )}
+                    {/* Ban option */}
+                    {!u.banned && (
+                      <button onClick={() => ban(u._id)}>השעה</button>
+                    )}
+                    {/* Unban option */}
+                    {u.banned && (
+                      <button onClick={() => unban(u._id)}>שחזר</button>
+                    )}
+                    {/* Delete option */}
+                    <button onClick={() => remove(u._id)}>מחק</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -181,7 +187,7 @@ export default function AdminPanel({ user }: Props) {
           {users.length === 0 && (
             <tr>
               <td style={td} colSpan={4}>
-                No users found.
+                לא נמצאו משתמשים.
               </td>
             </tr>
           )}
@@ -195,7 +201,7 @@ export default function AdminPanel({ user }: Props) {
  * Inline CSS for table headers
  */
 const th: React.CSSProperties = {
-  textAlign: "left",
+  textAlign: "right",             // align headers to the right for RTL
   borderBottom: "1px solid #e5e7eb",
   padding: "8px 6px",
   fontWeight: 700,
@@ -206,6 +212,7 @@ const th: React.CSSProperties = {
  * Inline CSS for table cells
  */
 const td: React.CSSProperties = {
+  textAlign: "right",             // align cells to the right for RTL
   borderBottom: "1px solid #f3f4f6",
   padding: "8px 6px",
   color: "#ffffffff",

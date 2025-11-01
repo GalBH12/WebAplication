@@ -1,23 +1,13 @@
 // Styles for shared auth components (card, inputs, etc.)
 import "../style/auth.css";
-// React state management
 import { useState } from "react";
-// Router utilities: navigate (redirect) + Link (client-side anchor)
 import { useNavigate, Link } from "react-router-dom";
-// Page-specific styles
 import "../style/register.css";
-// API wrapper to register a new user (alias for registerUser)
-import { register } from "../lib/auth"; // עדכנתי ל-func החדשה (alias ל-registerUser)
+import { register } from "../lib/auth";
 
-/**
- * Register page component.
- * Renders a form that collects basic account info and submits it to the backend.
- * On success -> redirects user to /login
- */
 export default function Register() {
   const navigate = useNavigate();
 
-  // All form fields tracked in a single object state
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -26,44 +16,36 @@ export default function Register() {
     firstName: "",
     lastName: "",
     phone: "",
-    birthDate: "", // YYYY-MM-DD
+    birthDate: "",
   });
 
-  // UX state: message to the user (errors/success)
   const [msg, setMsg] = useState("");
-  // Prevent duplicate submissions & show loading indicator
   const [loading, setLoading] = useState(false);
 
-  // Generic input handler for all <input name="..."> fields
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  // Submit handler: validates inputs, calls API, navigates on success
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     setMsg("");
-    // Basic required fields validation
     if (!form.username || !form.email || !form.password) {
-      setMsg("username, email and password are required");
+      setMsg("שם משתמש, אימייל וסיסמה דרושים");
       return;
     }
-    // Password confirmation check
     if (form.password !== form.confirm) {
-      setMsg("passwords do not match");
+      setMsg("הסיסמאות לא תואמות");
       return;
     }
-    // Phone number validation: must be exactly 10 digits
     if (form.phone && !/^\d{10}$/.test(form.phone)) {
-      setMsg("phone number must be exactly 10 digits");
+      setMsg("מספר טלפון חייב להכיל בדיוק 10 ספרות");
       return;
     }
 
     setLoading(true);
     try {
-      // Call backend to create a new account
       await register({
         username: form.username,
         email: form.email,
@@ -71,113 +53,110 @@ export default function Register() {
         firstName: form.firstName || undefined,
         lastName: form.lastName || undefined,
         phone: form.phone || undefined,
-        birthDate: form.birthDate || undefined, // "YYYY-MM-DD"
+        birthDate: form.birthDate || undefined,
       });
-      setMsg("registered successfully");
-      // Redirect to login after successful registration
+      setMsg("נרשמת בהצלחה");
       navigate("/login");
     } catch (err: any) {
-      // Prefer server-provided error message when available
-      setMsg(err?.response?.data?.error || "register failed");
+      setMsg(err?.response?.data?.error || "ההרשמה נכשלה");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      {/* Semantic form element with submit handler */}
+    <div className="register-container" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
       <form className="auth-card register-form" onSubmit={handleRegister}>
-        <h2>Register</h2>
+        <h2>הרשמה</h2>
 
-        {/* Inline feedback area for errors/success messages */}
         {msg && <p className="error-message">{msg}</p>}
 
-        {/* Optional profile fields (can be filled later as well) */}
         <input
           type="text"
           name="firstName"
-          placeholder="First name"
+          placeholder="שם פרטי"
           value={form.firstName}
           onChange={onChange}
+          dir="rtl"
         />
 
         <input
           type="text"
           name="lastName"
-          placeholder="Last name"
+          placeholder="שם משפחה"
           value={form.lastName}
           onChange={onChange}
+          dir="rtl"
         />
 
-        {/* Required contact + login credentials */}
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="אימייל"
           value={form.email}
           onChange={onChange}
           required
           autoComplete="email"
+          dir="rtl"
         />
 
         <input
           type="tel"
           name="phone"
-          placeholder="Phone"
+          placeholder="טלפון"
           value={form.phone}
           onChange={onChange}
+          dir="rtl"
         />
 
-        {/* Native date picker; stored as ISO date string */}
         <input
           type="date"
           name="birthDate"
-          placeholder="Birth date"
+          placeholder="תאריך לידה"
           value={form.birthDate}
           onChange={onChange}
+          dir="rtl"
         />
 
-        {/* Unique username */}
         <input
           type="text"
           name="username"
-          placeholder="Username"
+          placeholder="שם משתמש"
           value={form.username}
           onChange={onChange}
           required
           autoComplete="username"
+          dir="rtl"
         />
 
-        {/* Password + confirmation (client-side check before submit) */}
         <input
           type="password"
           name="password"
-          placeholder="Password"
+          placeholder="סיסמה"
           value={form.password}
           onChange={onChange}
           required
           autoComplete="new-password"
+          dir="rtl"
         />
 
         <input
           type="password"
           name="confirm"
-          placeholder="Confirm password"
+          placeholder="אישור סיסמה"
           value={form.confirm}
           onChange={onChange}
           required
           autoComplete="new-password"
+          dir="rtl"
         />
 
-        {/* Submit button reflects loading state */}
         <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Register"}
+          {loading ? "נרשם…" : "הרשם"}
         </button>
 
-        {/* Link to login for existing users */}
         <p>
-          Already have an account? <Link to="/login">Log in</Link>
+          כבר יש לך חשבון? <Link to="/login">התחבר</Link>
         </p>
       </form>
     </div>

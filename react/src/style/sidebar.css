@@ -1,14 +1,14 @@
 /* ============================
-   Sidebar – Modern Glassy Look
+   Sidebar – anchor it to the RIGHT and slide from the right
    ============================ */
 .sidebar {
   position: fixed;
-  inset: 0 auto 0 0;                 /* shorthand: top:0; left:0; bottom:0 */
+  inset: 0 0 0 auto;                 /* top:0; right:0; bottom:0; left:auto */
   width: 280px;
   height: 100%;
 
-  /* Slide-in animation setup */
-  transform: translateX(-100%);       /* hidden by default */
+  /* Slide-in animation setup (hidden offscreen to the right) */
+  transform: translateX(100%);       /* hidden by default (to the right) */
   transition: transform 260ms cubic-bezier(.2,.8,.2,1);
 
   padding: 16px 16px 20px;
@@ -21,7 +21,7 @@
     rgba(2, 6, 23, 0.8) 60%
   );
   backdrop-filter: blur(8px) saturate(140%);
-  border-right: 1px solid rgba(148, 163, 184, 0.18);
+  border-left: 1px solid rgba(148, 163, 184, 0.18); /* when anchored right show left border */
 
   /* Depth + subtle border */
   box-shadow:
@@ -29,7 +29,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 
   color: #e5e7eb;
-  direction: ltr;
+  direction: rtl;
 
   /* Prevent horizontal glow/overflow */
   overflow-x: hidden;
@@ -43,6 +43,7 @@
    Top Bar (inside sidebar)
    ============================ */
 .top-bar {
+  position: relative; /* allow absolute positioning of the close/hamburger button */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -55,6 +56,10 @@
    Hamburger Button (inside sidebar)
    ============================ */
 .menu-button {
+  position: absolute; /* move the X / hamburger to the left edge of the sidebar */
+  left: 8px;
+  top: 8px;
+
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(15, 23, 42, 0.6);
   border-radius: 12px;
@@ -262,7 +267,8 @@
 .sidebar-launcher {
   position: fixed;
   top: 16px;
-  left: 16px;
+  right: 16px;
+  left: auto;
   z-index: 1100; /* above sidebar */
 
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -296,3 +302,9 @@
    ============================ */
 .button { display: none; }
 .sidebar ul { list-style: none; padding: 0; margin: 0; }
+
+/* When sidebar is open push page content to the left (so content sits beside the sidebar) */
+body.sidebar-open {
+  transition: margin-right 260ms cubic-bezier(.2,.8,.2,1);
+  margin-right: 280px; /* matches sidebar width */
+}

@@ -204,6 +204,10 @@ font: inherit;
   word-break: break-word;
 }
 
+.leaflet-popup-close-button {
+  color: #333 !important;
+}
+
 .popup-image-container {
   display: flex;
   justify-content: center;

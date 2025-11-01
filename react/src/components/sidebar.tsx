@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import "../style/sidebar.css";
 import { useAuth } from "../pages/AuthContext";
@@ -28,6 +28,12 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  // keep page content shifted while sidebar is open
+  useEffect(() => {
+    document.body.classList.toggle("sidebar-open", isOpen);
+    return () => document.body.classList.remove("sidebar-open");
+  }, [isOpen]);
+
   // Auth context (user + logout)
   const { user, logout } = useAuth();
 
@@ -42,11 +48,31 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
 
   // When selecting a saved place, center the map and close sidebar
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
-    const found = places.find((p) => p.id === id);
+    const select = e.currentTarget;
+    const val = select.value;
+    if (!val) return;
+    console.debug("places select raw value:", val);
+
+    // value format: "lat,lng"
+    const parts = val.split(",").map((s) => s.trim());
+    if (parts.length === 2) {
+      const lat = Number(parts[0]);
+      const lng = Number(parts[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        onSelectLocation([lat, lng]);
+        setIsOpen(false);
+        // reset select to placeholder
+        setTimeout(() => (select.selectedIndex = 0), 0);
+        return;
+      }
+    }
+
+    // fallback: treat value as id
+    const found = places.find((p) => p.id === val || (p as any)._id === val);
     if (found) {
       onSelectLocation(found.latlng);
       setIsOpen(false);
+      setTimeout(() => (select.selectedIndex = 0), 0);
     }
   };
 
@@ -63,8 +89,9 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
         <button
           className="sidebar-launcher"
           onClick={toggleSidebar}
-          aria-label="Open menu"
-          title="Open menu"
+          aria-label="פתח תפריט"
+          title="פתח תפריט"
+          style={{ right: 16, left: "auto" }}
         >
           <span className="hamburger">
             <span className="hamburger__bar" />
@@ -75,14 +102,19 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
       )}
 
       {/* Sidebar container; toggles .open class */}
-      <aside className={`sidebar ${isOpen ? "open" : ""}`} aria-label="Main sidebar">
+      <aside
+        className={`sidebar ${isOpen ? "open" : ""}`}
+        aria-label="סרגל צד ראשי"
+        dir="rtl"
+        style={{ textAlign: "right" }}
+      >
         {/* Top bar with brand and menu toggle */}
         <div className="top-bar">
           <button
             className={`menu-button ${isOpen ? "is-open" : ""}`}
             onClick={toggleSidebar}
-            aria-label={isOpen ? "Close menu" : "Open menu"}
-            title={isOpen ? "Close menu" : "Open menu"}
+            aria-label={isOpen ? "סגור תפריט" : "פתח תפריט"}
+            title={isOpen ? "סגור תפריט" : "פתח תפריט"}
           >
             <span className="hamburger">
               <span className="hamburger__bar" />
@@ -90,11 +122,6 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
               <span className="hamburger__bar" />
             </span>
           </button>
-
-          <div className="brand">
-            <span className="brand__dot" />
-            <span className="brand__text">Explore</span>
-          </div>
         </div>
 
         {/* Auth shortcuts / greeting + logout */}
@@ -102,19 +129,19 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
           {!user ? (
             <>
               <Link className="top-link" to="/login" onClick={() => setIsOpen(false)}>
-                login
+                התחברות
               </Link>
               <span className="sep">·</span>
               <Link className="top-link" to="/register" onClick={() => setIsOpen(false)}>
-                register
+                הרשמה
               </Link>
             </>
           ) : (
             <>
-              <span className="welcome-message">hello, {displayName}</span>
+              <span className="welcome-message">שלום, {displayName}</span>
               <span className="sep">·</span>
               <button className="top-link top-link--ghost" onClick={handleLogout}>
-                logout
+                התנתק
               </button>
             </>
           )}
@@ -122,19 +149,20 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
 
         {/* Quick jump to a saved place (select → centers the map) */}
         <section className="recent-places-section">
-          <h4 className="section-title">Saved places</h4>
+          <h4 className="section-title">מקומות שמורים</h4>
           <div className="field">
             <select
               className="places-select"
               defaultValue=""
               onChange={handleSelectChange}
-              aria-label="Select saved place"
+              aria-label="בחר מקום שמור"
             >
               <option value="" disabled>
-                Select a place…
+                בחר מקום…
               </option>
               {places.map((p) => (
-                <option key={p.id} value={p.id}>
+                // store lat,lng as plain comma separated value for robust parsing
+                <option key={p.id ?? (p as any)._id} value={`${p.latlng[0]},${p.latlng[1]}`}>
                   {p.name}
                 </option>
               ))}
@@ -154,7 +182,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                 }
                 end
               >
-                Home
+                בית
               </NavLink>
             </li>
 
@@ -166,7 +194,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                   `nav-btn nav-btn--primary ${isActive ? "nav-btn--active" : ""}`
                 }
               >
-                Tracks
+                מסלולים
               </NavLink>
             </li>
 
@@ -181,7 +209,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                       setIsOpen(false);
                     }}
                   >
-                    Profile
+                    פרופיל
                   </button>
                 </li>
 
@@ -193,7 +221,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                       setIsOpen(false);
                     }}
                   >
-                    Chat
+                    צ'אט
                   </button>
                 </li>
 
@@ -205,7 +233,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                       `nav-btn nav-btn--ghost ${isActive ? "nav-btn--active" : ""}`
                     }
                   >
-                    Change password
+                    שנה סיסמה
                   </NavLink>
                 </li>
 
@@ -219,7 +247,7 @@ const Sidebar = ({ places = [], onSelectLocation }: SidebarProps) => {
                         `nav-btn nav-btn--ghost ${isActive ? "nav-btn--active" : ""}`
                       }
                     >
-                      Admin panel
+                      לוח מנהל
                     </NavLink>
                   </li>
                 )}

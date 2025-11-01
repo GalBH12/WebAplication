@@ -6,7 +6,7 @@
   inset: 0; /* top, right, bottom, left = 0 */
   background: rgba(2, 6, 23, .35); /* semi-transparent dark */
   backdrop-filter: blur(2px);      /* soft blur effect */
-  z-index: 50000;                  /* behind the panel */
+  z-index: 100000;                  /* behind the panel */
 }
 
 /* ============================

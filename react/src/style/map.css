@@ -97,3 +97,34 @@
     transform: translateX(-6px);
   }
 }
+
+/* ensure popup layout is RTL so content aligns correctly */
+.leaflet-popup {
+  direction: rtl;
+}
+
+/* move Leaflet popup close button to the LEFT */
+.leaflet-popup-close-button {
+  right: auto !important;
+  left: 1px !important;
+  top: 1px !important;
+  transform: none !important; /* cancel any flips */
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* smaller screens */
+@media (max-width: 480px) {
+  .leaflet-popup-close-button {
+    left: 6px !important;
+    top: 6px !important;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+  }
+}

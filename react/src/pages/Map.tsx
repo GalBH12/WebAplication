@@ -425,7 +425,11 @@ export default function Map() {
         {/* Show your current location */}
         {myPos && (
           <Marker position={myPos} icon={defaultIcon}>
-            <Popup>אתה כאן</Popup>
+            <Popup>
+              <div dir="rtl" style={{ textAlign: "right" }}>
+                אתה כאן
+              </div>
+            </Popup>
           </Marker>
         )}
 

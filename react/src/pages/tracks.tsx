@@ -183,7 +183,6 @@ export default function Tracks() {
       }
       
       const updated = await updateTrack(editing._id, payload);
-      console.log("Track updated:", updated);
       // Replace updated item in local list
       setItems((prev) => prev.map((x) => (x._id === updated._id ? updated : x)));
       setEditing(null); // close modal
@@ -194,9 +193,6 @@ export default function Tracks() {
       setSavingEdit(false);
     }
   };
-
-  // Debug log: renders & items snapshot
-  console.log("Tracks component rendered with user:", items);
 
   return (
     <div className="tracks-wrap" dir="rtl" style={{ direction: "rtl", textAlign: "right" }}>
